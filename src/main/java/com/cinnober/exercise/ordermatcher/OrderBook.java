@@ -2,6 +2,7 @@ package com.cinnober.exercise.ordermatcher;
 
 import java.io.Serializable;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentSkipListMap;
 
 public class OrderBook {
@@ -9,11 +10,11 @@ public class OrderBook {
     private String securityId;
     private final NavigableMap<Long, LevelInfo> bids = new ConcurrentSkipListMap<>(Comparator.reverseOrder());
     private final NavigableMap<Long, LevelInfo> offers = new ConcurrentSkipListMap<>(Comparator.naturalOrder());
+    private final Map<Long, Order> orders = new ConcurrentHashMap<>(); // orderId, Order
 
 
     public static class LevelInfo implements Serializable {
-        private static final long serialVersionUID = 1L;
-        private int orders;
+        private final List<Long> orders = new ArrayList<>();
         private long volume;
 
         LevelInfo(long volume) {
@@ -28,16 +29,16 @@ public class OrderBook {
             this.volume = volume;
         }
 
-        int getOrders() {
+        List<Long> getOrders() {
             return orders;
         }
 
-        void addOrderCount() {
-            orders++;
+        void addOrder(Long orderId) {
+            orders.add(orderId);
         }
 
-        void removeOrderCount() {
-            orders--;
+        void removeOrder(Long orderId) {
+            orders.removeIf(aLong -> aLong.equals(orderId));
         }
 
     }
@@ -49,14 +50,14 @@ public class OrderBook {
     public List<Trade> addOrder (Order order) {
         List< Trade> trades = new ArrayList<>();
         if (order.getSide().equals(Side.BUY)) {
+            orders.put(order.getId(), order);
 
-        } else {
+        } else if (order.getSide().equals(Side.SELL)) {
             long currQty = order.getQuantity();
             Map.Entry<Long, LevelInfo> bid;
 
-
             while ( (bid = getBids().firstEntry()) != null) {
-                if (order.getPrice() <= bid.getKey() && currQty > 0 ) {
+                if (bid.getKey() >= order.getPrice() && currQty > 0 ) {
                     long abs = Math.abs(bid.getValue().getVolume() - currQty);
 
                     if (currQty > bid.getValue().getVolume()) {
@@ -73,11 +74,13 @@ public class OrderBook {
                         // total fill
                         currQty = bid.getValue().getVolume() - abs;
                         subtract(Side.BUY, order.getPrice(), abs);
-
                     }
                 } else
                     break;
             }
+
+            if (currQty > 0)
+                orders.put(order.getId(), order);
 
         }
         return trades;
@@ -103,32 +106,32 @@ public class OrderBook {
         }
     }
 
-    public Integer getOrders(Long price, Side ngmMdEntryType) {
+    public List<Long> getOrders(Long price, Side ngmMdEntryType) {
         Map<Long, LevelInfo> pricesByEntryType = getPricesBySide(ngmMdEntryType);
         if (pricesByEntryType != null) {
             if (pricesByEntryType.containsKey(price)) {
                 return pricesByEntryType.get(price).getOrders();
             }
         }
-        return 0;
+        return new ArrayList<>();
     }
 
-    public void addOrder(Long price, Side side) {
+    public void addOrder(Long price, Side side, Long orderId) {
         Map<Long, LevelInfo> pricesByEntryType = getPricesBySide(side);
         if (pricesByEntryType != null) {
             if (pricesByEntryType.containsKey(price)) {
                 LevelInfo levelInfo = pricesByEntryType.get(price);
-                levelInfo.addOrderCount();
+                levelInfo.addOrder(orderId);
             }
         }
     }
 
-    public void removeOrder(Long price, Side side) {
+    public void removeOrder(Long price, Side side, Long orderId) {
         Map<Long, LevelInfo> pricesBySide = getPricesBySide(side);
         if (pricesBySide != null) {
             if (pricesBySide.containsKey(price)) {
                 LevelInfo levelInfo = pricesBySide.get(price);
-                levelInfo.removeOrderCount();
+                levelInfo.removeOrder(orderId);
             }
         }
     }
