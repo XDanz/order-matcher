@@ -2,7 +2,6 @@ package com.cinnober.exercise.ordermatcher;
 
 import java.io.Serializable;
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentSkipListMap;
 
 public class OrderBook {
@@ -10,77 +9,83 @@ public class OrderBook {
     private String securityId;
     private final NavigableMap<Long, LevelInfo> bids = new ConcurrentSkipListMap<>(Comparator.reverseOrder());
     private final NavigableMap<Long, LevelInfo> offers = new ConcurrentSkipListMap<>(Comparator.naturalOrder());
-    private final Map<Long, Order> orders = new ConcurrentHashMap<>(); // orderId, Order
 
 
     public static class LevelInfo implements Serializable {
-        private final List<Long> orders = new ArrayList<>();
-        private long volume;
-
-        LevelInfo(long volume) {
-            this.volume = volume;
-        }
+        private final List<Order> orders = new ArrayList<>();
 
         long getVolume() {
-            return volume;
+            Long sum = 0L;
+            for (Order order : orders) {
+                sum += order.getQuantity();
+            }
+            return sum;
         }
 
-        void setVolume(long volume) {
-            this.volume = volume;
-        }
-
-        List<Long> getOrders() {
+        List<Order> getOrders() {
             return orders;
         }
 
-        void addOrder(Long orderId) {
-            orders.add(orderId);
+        void addOrder(Order order) {
+            orders.add(order);
         }
-
-        void removeOrder(Long orderId) {
-            orders.removeIf(aLong -> aLong.equals(orderId));
-        }
-
     }
 
     OrderBook(String securityId) {
         this.securityId = securityId;
     }
 
+    List<Order> getOrders(Side side) {
+        List<Order> bidOrders = new ArrayList<>();
+        NavigableMap<Long, LevelInfo> pricesBySide = getPricesBySide(side);
+        for (LevelInfo levelInfo : pricesBySide.values()) {
+            bidOrders.addAll(levelInfo.getOrders());
+        }
+        return bidOrders;
+    }
+
     public List<Trade> addOrder (Order order) {
         List< Trade> trades = new ArrayList<>();
+
         if (order.getSide().equals(Side.BUY)) {
-            orders.put(order.getId(), order);
-
-        } else if (order.getSide().equals(Side.SELL)) {
             long currQty = order.getQuantity();
-            Map.Entry<Long, LevelInfo> bid;
 
-            while ( (bid = getBids().firstEntry()) != null) {
-                if (bid.getKey() >= order.getPrice() && currQty > 0 ) {
-                    long abs = Math.abs(bid.getValue().getVolume() - currQty);
+            Set<Map.Entry<Long, LevelInfo>> entries = getOffers().entrySet();
 
-                    if (currQty > bid.getValue().getVolume()) {
-                        currQty = bid.getValue().getVolume() - abs;
-                        subtract(Side.BUY, order.getPrice(), abs);
-                        //Todo: fix pasiveOrderId
-                        trades.add(new Trade(order.getId(), 0, bid.getKey(), abs));
-                        // trade occured!
-                    } else if (currQty < bid.getValue().getVolume()) {
-                        currQty = bid.getValue().getVolume() - abs;
-                        subtract(Side.BUY, order.getPrice(), abs);
-                        // partial fill
-                    } else {
-                        // total fill
-                        currQty = bid.getValue().getVolume() - abs;
-                        subtract(Side.BUY, order.getPrice(), abs);
-                    }
+            for (Map.Entry<Long, LevelInfo> offer : entries) {
+                if ((offer.getKey() <= order.getPrice()) && currQty > 0) {
+
+                    List<Trade> tradesAtPrice;
+                    tradesAtPrice = matchAtPrice(Side.SELL, offer.getKey(), currQty, order.getId());
+                    trades.addAll(tradesAtPrice);
+                    currQty -= tradesAtPrice.stream().mapToLong(Trade::getQuantity).sum();
                 } else
                     break;
             }
 
-            if (currQty > 0)
-                orders.put(order.getId(), order);
+            if (currQty > 0) {
+                add(order.getSide(),order.getPrice(), currQty,  order.getId());
+            }
+
+        } else if (order.getSide().equals(Side.SELL)) {
+            long currQty = order.getQuantity();
+            Set<Map.Entry<Long, LevelInfo>> entries = getBids().entrySet();
+
+            for (Map.Entry<Long, LevelInfo> bid : entries) {
+                if ((bid.getKey() >= order.getPrice()) && currQty > 0) {
+
+                    List<Trade> tradesAtPrice;
+                    tradesAtPrice = matchAtPrice(Side.BUY, bid.getKey(), currQty, order.getId());
+                    trades.addAll(tradesAtPrice);
+                    currQty -= tradesAtPrice.stream().mapToLong(Trade::getQuantity).sum();
+                } else
+                    break;
+            }
+
+            if (currQty > 0) {
+
+                add(order.getSide(),order.getPrice(), currQty,  order.getId());
+            }
 
         }
         return trades;
@@ -92,74 +97,76 @@ public class OrderBook {
      *
      * @param side BID or OFFER
      * @param price The price
-     * @param volume The amount of volume to remove from the order
+     * @param qty The amount of volume to remove from the order
      */
-    public void add(Side side, Long price, Long volume) {
+    private void add(Side side, Long price, Long qty, Long orderId) {
         Map<Long, LevelInfo> priceBySide = getPricesBySide(side);
         if (priceBySide != null) {
+            Order order = new Order(orderId, side, price, qty);
             if (priceBySide.containsKey(price)) {
                 LevelInfo levelInfo = priceBySide.get(price);
-                levelInfo.setVolume(levelInfo.getVolume() + volume);
+                levelInfo.addOrder(order);
             } else {
-                priceBySide.put(price, new LevelInfo(volume));
-            }
-        }
-    }
-
-    public List<Long> getOrders(Long price, Side ngmMdEntryType) {
-        Map<Long, LevelInfo> pricesByEntryType = getPricesBySide(ngmMdEntryType);
-        if (pricesByEntryType != null) {
-            if (pricesByEntryType.containsKey(price)) {
-                return pricesByEntryType.get(price).getOrders();
-            }
-        }
-        return new ArrayList<>();
-    }
-
-    public void addOrder(Long price, Side side, Long orderId) {
-        Map<Long, LevelInfo> pricesByEntryType = getPricesBySide(side);
-        if (pricesByEntryType != null) {
-            if (pricesByEntryType.containsKey(price)) {
-                LevelInfo levelInfo = pricesByEntryType.get(price);
-                levelInfo.addOrder(orderId);
-            }
-        }
-    }
-
-    public void removeOrder(Long price, Side side, Long orderId) {
-        Map<Long, LevelInfo> pricesBySide = getPricesBySide(side);
-        if (pricesBySide != null) {
-            if (pricesBySide.containsKey(price)) {
-                LevelInfo levelInfo = pricesBySide.get(price);
-                levelInfo.removeOrder(orderId);
+                LevelInfo levelInfo = new LevelInfo();
+                levelInfo.addOrder(order);
+                priceBySide.put(price, levelInfo);
             }
         }
     }
 
     /**
-     * Subtract the volume amount from the order with ngmMdEntryType (BID/OFFER)
+     * Subtract the volume amount from the order with (BID/OFFER)
      * to the specified price.
      *
      * @param side BID or OFFER
      * @param price The price
      * @param volume The amount of volume to remove from the order
      */
-    public void subtract(Side side, Long price, Long volume) {
-        Map<Long, LevelInfo> pricesByEntryType = getPricesBySide(side);
-        if (pricesByEntryType != null) {
-            if (pricesByEntryType.containsKey(price)) {
-                LevelInfo levelInfo = pricesByEntryType.get(price);
-                levelInfo.setVolume(levelInfo.getVolume()-volume);
-            } else {
-                pricesByEntryType.put(price, new LevelInfo(volume));
+    private List<Trade> matchAtPrice(Side side, Long price, Long volume, Long activeOrderId) {
+        List<Trade> affected = new ArrayList<>();
+
+        Map<Long, LevelInfo> ordersByPrice = getPricesBySide(side);
+        if (ordersByPrice.containsKey(price)) {
+            LevelInfo levelInfo = ordersByPrice.get(price);
+            List<Order> queueOrders = levelInfo.getOrders();
+
+            Long availVolume = volume;
+
+            for (Iterator<Order> it = queueOrders.iterator(); it.hasNext();) {
+                Order order = it.next();
+                if (availVolume > order.getQuantity()) {
+                    availVolume = availVolume - order.getQuantity();
+                    affected.add(new Trade(activeOrderId, order.getId(), price, order.getQuantity()));
+                    order.setQuantity(0);
+                    it.remove();
+                } else if (availVolume < order.getQuantity()) {
+                    // Partial fill of order
+                    long diff = order.getQuantity() - availVolume;
+                    order.setQuantity(diff);
+                    availVolume = diff;
+                    affected.add(new Trade(activeOrderId, order.getId(), price, volume));
+                } else {
+                    affected.add(new Trade(activeOrderId, order.getId(), price, order.getQuantity()));
+                    availVolume = 0L;
+                    order.setQuantity(0L);
+                    it.remove();
+                }
+
+                if (availVolume <= 0)
+                    break;
             }
 
-            if (pricesByEntryType.get(price).getVolume() == 0) {
-                pricesByEntryType.remove(price);
-            } else if (pricesByEntryType.get(price).getVolume() < 0) {
-                throw new IllegalStateException(" Big time error! delta volume could not be negative");
-            }
+        } else {
+            throw new IllegalStateException(" Try to match at non existing price" + price);
         }
+
+        if (ordersByPrice.get(price).getVolume() == 0) {
+            ordersByPrice.remove(price);
+        } else if (ordersByPrice.get(price).getVolume() < 0) {
+            throw new IllegalStateException(" Big time error! delta volume could not be negative");
+        }
+
+        return affected;
     }
 
     public NavigableMap<Long,LevelInfo> getPricesBySide(Side side) {

@@ -74,13 +74,7 @@ public class OrderMatcher {
      * @return any trades that were created by this order, not null.
      */
     public List<Trade> addOrder(Order order) {
-        if (order.getSide().equals(Side.BUY)) {
-            return orderBook.addOrder(order);
-        } else if (order.getSide().equals(Side.SELL)) {
-            return orderBook.addOrder(order);
-        } else {
-            throw new UnsupportedOperationException("addOrder is not implemented yet"); // FIXME
-        }
+        return orderBook.addOrder(order);
     }
 
     /**
@@ -93,7 +87,7 @@ public class OrderMatcher {
      * @return all remaining orders in the order book, in priority order, for the specified side, not null.
      */
     public List<Order> getOrders(Side side) {
-        throw new UnsupportedOperationException("getOrders is not implemented yet"); // FIXME
+        return orderBook.getOrders(side);
     }
 
 
