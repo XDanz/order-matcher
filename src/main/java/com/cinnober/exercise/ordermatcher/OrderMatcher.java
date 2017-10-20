@@ -20,7 +20,12 @@ package com.cinnober.exercise.ordermatcher;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
+import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentSkipListMap;
+import java.util.stream.Collectors;
 
 /**
  * Order book with continuous matching of limit orders with time priority.
@@ -53,12 +58,15 @@ import java.util.List;
  */
 public class OrderMatcher {
 
+
+    private final OrderBook orderBook = new OrderBook("2X7");
+
     /**
      * Create a new order matcher.
      */
     public OrderMatcher() {
     }
-    
+
     /**
      * Add the specified order to the order book.
      *
@@ -66,7 +74,13 @@ public class OrderMatcher {
      * @return any trades that were created by this order, not null.
      */
     public List<Trade> addOrder(Order order) {
-        throw new UnsupportedOperationException("addOrder is not implemented yet"); // FIXME
+        if (order.getSide().equals(Side.BUY)) {
+            return orderBook.addOrder(order);
+        } else if (order.getSide().equals(Side.SELL)) {
+            return orderBook.addOrder(order);
+        } else {
+            throw new UnsupportedOperationException("addOrder is not implemented yet"); // FIXME
+        }
     }
 
     /**
