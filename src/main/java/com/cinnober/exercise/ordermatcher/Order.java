@@ -27,7 +27,7 @@ import java.util.regex.Pattern;
  *
  * <p>An order has a side (buy/sell), quantity and price. For example: buy 10 units @ 5 SEK each (or better price).
  */
-public class Order implements Comparable<Order> {
+public class Order {
     private static final Pattern PATTERN =
             Pattern.compile("(?<side>([bB][uU][yY])|([sS][eE][lL][lL]))[ ]+(?<qty>[0-9]+)[ ]*@[ ]*(?<px>[0-9]+)([ ]+#(?<id>[0-9]+))?");
     private static final String GROUP_ID = "id";
@@ -112,11 +112,6 @@ public class Order implements Comparable<Order> {
     }
 
     @Override
-    public int compareTo(Order o) {
-        return Long.compare(getPrice(), o.getPrice());
-    }
-
-    @Override
     public String toString() {
         return side + " " + quantity + "@" + price + " #" + id;
     }
@@ -169,6 +164,6 @@ public class Order implements Comparable<Order> {
         return true;
     }
 
-    
+
 
 }

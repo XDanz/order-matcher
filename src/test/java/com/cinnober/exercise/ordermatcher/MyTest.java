@@ -3,7 +3,6 @@ package com.cinnober.exercise.ordermatcher;
 import org.junit.Assert;
 import org.junit.Test;
 
-import java.util.Arrays;
 import java.util.List;
 
 import static org.junit.Assert.assertEquals;
@@ -25,13 +24,13 @@ public class MyTest {
 
         trades = orderMatcher.addOrder(new Order(3, Side.SELL, 5, 20));
         System.out.println("2 trades = " + trades);
-//
+
         orders = orderMatcher.getOrders(Side.BUY);
         System.out.println("2 orders = " + orders);
 
         trades = orderMatcher.addOrder(new Order(4, Side.SELL, 5, 30));
         System.out.println("3 trades = " + trades);
-//
+
         orders = orderMatcher.getOrders(Side.BUY);
         System.out.println("3 orders = " + orders);
     }
@@ -47,7 +46,7 @@ public class MyTest {
         assertEquals(2, trades.size());
         assertTrade(5, 100, trades.get(0));
         assertTrade(4, 100, trades.get(1));
-//
+
         List<Order> orders = orderMatcher.getOrders(Side.SELL);
         System.out.println(orders.size() + " orders = " + orders);
         assertEquals(1, orders.size());
@@ -113,10 +112,6 @@ public class MyTest {
     @Test
     public void test6() throws Exception {
 
-//                Arrays.asList("SELL 50@10 #1", "SELL 100@10 #2", "BUY 150@10 #3"),
-//                Arrays.asList("TRADE 50@10 (#3/#1)", "TRADE 100@10 (#3/#2)"),
-//                Arrays.asList()
-//        );
         OrderMatcher orderMatcher = new OrderMatcher();
         orderMatcher.addOrder(new Order(1, Side.SELL, 10, 50));
         orderMatcher.addOrder(new Order(2, Side.SELL, 10, 100));

@@ -20,12 +20,7 @@ package com.cinnober.exercise.ordermatcher;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
-import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ConcurrentSkipListMap;
-import java.util.stream.Collectors;
 
 /**
  * Order book with continuous matching of limit orders with time priority.
