@@ -6,6 +6,20 @@ import java.util.concurrent.ConcurrentSkipListMap;
 /**
  *
  * @author Daniel Terranova
+ *
+ * An order book contains two sides a sell and a buy side. The bid/sell side is represented as a
+ * SortedMap where the key is the price and value contains orders at the given price. The bid side
+ * is sorted (key i.e price) in reverse natural order and the sell side is sorted (key i.e price) in
+ * natural order.
+ *
+ * Orders are placed in the order book at a given price in insertion order. When active order
+ * is added and matched at a given price the first order is processed and removed if the active
+ * order has higher quantity than the current processed (passive) order.
+ *
+ * If additional orders at the price exists those orders are processed until all orders is removed
+ * from the price and that price is removed from the order book.
+ *
+ * @version 1.0
  */
 public class OrderBook {
 
@@ -25,26 +39,6 @@ public class OrderBook {
         return securityId;
     }
 
-    public static class OrdersAtPrice {
-        private final List<Order> orders = new ArrayList<>();
-
-        long getVolume() {
-            Long sum = 0L;
-            for (Order order : orders) {
-                sum += order.getQuantity();
-            }
-            return sum;
-        }
-
-        List<Order> getOrders() {
-            return orders;
-        }
-
-        void addOrder(Order order) {
-            orders.add(order);
-        }
-    }
-
     /**
      * Returns all remaining orders in the order book, in priority order, for the specified side.
      *
@@ -54,7 +48,7 @@ public class OrderBook {
      * @param side the side, not null.
      * @return all remaining orders in the order book, in priority order, for the specified side, not null.
      */
-    List<Order> getOrders(Side side) {
+    public List<Order> getOrders(Side side) {
         List<Order> bidOrders = new ArrayList<>();
         Map<Long, OrdersAtPrice> pricesBySide = getOrderBookSide(side);
         for (OrdersAtPrice ordersAtPrice : pricesBySide.values()) {
@@ -69,8 +63,8 @@ public class OrderBook {
      * @param order the order to be added, not null. The order will not be modified by the caller after this call.
      * @return any trades that were created by this order, not null.
      */
-    List<Trade> addOrder(Order order) {
-        List< Trade> trades = new ArrayList<>();
+    public List<Trade> addOrder(Order order) {
+        List<Trade> trades = new ArrayList<>();
 
         long currQty = order.getQuantity();
 
@@ -115,6 +109,26 @@ public class OrderBook {
             add(order.getSide(), order.getPrice(), currQty,  order.getId());
         }
         return trades;
+    }
+
+    private static class OrdersAtPrice {
+        private final List<Order> orders = new ArrayList<>();
+
+        long getTotalQuantity() {
+            Long sum = 0L;
+            for (Order order : orders) {
+                sum += order.getQuantity();
+            }
+            return sum;
+        }
+
+        List<Order> getOrders() {
+            return orders;
+        }
+
+        void addOrder(Order order) {
+            orders.add(order);
+        }
     }
 
     /**
@@ -188,14 +202,14 @@ public class OrderBook {
             throw new IllegalStateException(" Try to match @ non existing price: " + price);
         }
 
-        if (orderBookSide.get(price).getVolume() == 0) {
+        if (orderBookSide.get(price).getTotalQuantity() == 0) {
             orderBookSide.remove(price);
         }
 
         return trades;
     }
 
-    private Map<Long,OrdersAtPrice> getOrderBookSide(Side side) {
+    private SortedMap<Long,OrdersAtPrice> getOrderBookSide(Side side) {
         if (side.equals(Side.BUY)) {
             return getBids();
         } else {
@@ -203,11 +217,11 @@ public class OrderBook {
         }
     }
 
-    private Map<Long, OrdersAtPrice> getBids() {
+    private SortedMap<Long, OrdersAtPrice> getBids() {
         return bids;
     }
 
-    private Map<Long, OrdersAtPrice> getOffers() {
+    private SortedMap<Long, OrdersAtPrice> getOffers() {
         return offers;
     }
 
