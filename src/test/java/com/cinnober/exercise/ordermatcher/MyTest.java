@@ -51,24 +51,12 @@ public class MyTest {
         System.out.println(orders.size() + " orders = " + orders);
         assertEquals(1, orders.size());
         assertOrder(4, 100, orders.get(0));
-//
-//        trades = orderMatcher.addOrder(new Order(3, Side.SELL, 5, 20));
-//        System.out.println("2 trades = " + trades);
-////
-//        orders = orderMatcher.getOrders(Side.BUY);
-//        System.out.println("2 orders = " + orders);
-//
-//        trades = orderMatcher.addOrder(new Order(4, Side.SELL, 5, 30));
-//        System.out.println("3 trades = " + trades);
-////
-//        orders = orderMatcher.getOrders(Side.BUY);
-//        System.out.println("3 orders = " + orders);
     }
 
     @Test
     public void testMatch2() {
         OrderMatcher orderMatcher = new OrderMatcher();
-        //OrderBook o = new OrderBook("2x7");
+
         orderMatcher.addOrder(new Order(1, Side.SELL, 5, 100));
         orderMatcher.addOrder(new Order(2, Side.SELL, 4, 100));
         List<Order> orders = orderMatcher.getOrders(Side.SELL);
@@ -76,7 +64,7 @@ public class MyTest {
 
         assertOrder(4, 100, orders.get(0));
         assertOrder(5, 100, orders.get(1));
-//
+
         List<Trade> trades = orderMatcher.addOrder(new Order(3, Side.BUY, 5, 50));
         assertEquals(1, trades.size());
         assertTrade(4, 50, trades.get(0));
@@ -88,7 +76,7 @@ public class MyTest {
     @Test
     public void testMatch3() {
         OrderMatcher orderMatcher = new OrderMatcher();
-        //OrderBook o = new OrderBook("2x7");
+
         orderMatcher.addOrder(new Order(1, Side.SELL, 5, 100));
         orderMatcher.addOrder(new Order(2, Side.SELL, 4, 100));
         List<Order> orders = orderMatcher.getOrders(Side.SELL);
