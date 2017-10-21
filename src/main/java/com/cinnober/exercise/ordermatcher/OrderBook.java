@@ -3,6 +3,10 @@ package com.cinnober.exercise.ordermatcher;
 import java.util.*;
 import java.util.concurrent.ConcurrentSkipListMap;
 
+/**
+ *
+ * @author Daniel Terranova
+ */
 public class OrderBook {
 
     private final String securityId;
@@ -11,6 +15,14 @@ public class OrderBook {
 
     OrderBook(String securityId) {
         this.securityId = Objects.requireNonNull(securityId, "securityId cannot be null");
+    }
+
+    /**
+     *
+     * @return The market identifier of the order book
+     */
+    public String getSecurityId() {
+        return securityId;
     }
 
     public static class OrdersAtPrice {
@@ -61,12 +73,14 @@ public class OrderBook {
         List< Trade> trades = new ArrayList<>();
 
         long currQty = order.getQuantity();
+
         if (order.getSide().equals(Side.BUY)) {
 
             Set<Map.Entry<Long, OrdersAtPrice>> entries = getOffers().entrySet();
 
             for (Map.Entry<Long, OrdersAtPrice> offer : entries) {
                 if ((offer.getKey() <= order.getPrice()) && currQty > 0) {
+                    // sell order exist at a lower price or equal to a buy order in the order book.
 
                     List<Trade> tradesAtPrice;
                     tradesAtPrice = matchAtPrice(Side.SELL, offer.getKey(), currQty, order.getId());
@@ -78,10 +92,13 @@ public class OrderBook {
             }
 
         } else if (order.getSide().equals(Side.SELL)) {
+
             Set<Map.Entry<Long, OrdersAtPrice>> entries = getBids().entrySet();
+
 
             for (Map.Entry<Long, OrdersAtPrice> bid : entries) {
                 if ((bid.getKey() >= order.getPrice()) && currQty > 0) {
+                    // buy order exist at a higher price or equal to a sell order in the order book.
 
                     List<Trade> tradesAtPrice;
                     tradesAtPrice = matchAtPrice(Side.BUY, bid.getKey(), currQty, order.getId());
