@@ -187,7 +187,7 @@ public class OrderBook {
                     long diff = order.getQuantity() - availQty;
                     order.setQuantity(diff);
                     trades.add(new Trade(activeOrderId, order.getId(), price, availQty));
-                    availQty = diff;
+                    availQty = 0L;
                 } else {
                     trades.add(new Trade(activeOrderId, order.getId(), price, order.getQuantity()));
                     availQty = 0L;
