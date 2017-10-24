@@ -30,10 +30,10 @@ import java.util.regex.Pattern;
 public class Order {
     private static final Pattern PATTERN =
             Pattern.compile("(?<side>([bB][uU][yY])|([sS][eE][lL][lL]))[ ]+(?<qty>[0-9]+)[ ]*@[ ]*(?<px>[0-9]+)([ ]+#(?<id>[0-9]+))?");
-    private static final String GROUP_ID = "id";
-    private static final String GROUP_SIDE = "side";
-    private static final String GROUP_QUANTITY = "qty";
-    private static final String GROUP_PRICE = "px";
+    protected static final String GROUP_ID = "id";
+    protected static final String GROUP_SIDE = "side";
+    protected static final String GROUP_QUANTITY = "qty";
+    protected static final String GROUP_PRICE = "px";
 
     private final long id;
     private final Side side;

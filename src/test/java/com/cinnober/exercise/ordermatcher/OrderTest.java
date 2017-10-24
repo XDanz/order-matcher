@@ -52,5 +52,18 @@ public class OrderTest {
         assertEquals("SELL 100@5 #1", new Order(1, Side.SELL, 5, 100).toString());
     }
 
+    @Test
+    public void testIceToString() {
+        assertEquals("BUY 50/100@5 #1", new IceBergOrder(1, Side.BUY, 5, 100, 50).toString());
+        assertEquals("BUY 50/100@5 #0", new IceBergOrder(0, Side.BUY, 5, 100, 50).toString());
+        assertEquals("SELL 50/100@5 #1", new IceBergOrder(1, Side.SELL, 5, 100, 50).toString());
+    }
+
+    @Test
+    public void testToIceBergString() {
+        assertEquals("BUY 50/100@5 #1", new IceBergOrder(1, Side.BUY, 5, 100, 50).toString());
+        assertEquals("SELL 50/100@5 #1", new IceBergOrder(1, Side.SELL, 5, 100, 50).toString());
+    }
+
 
 }

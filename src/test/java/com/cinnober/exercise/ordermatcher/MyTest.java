@@ -36,6 +36,35 @@ public class MyTest {
     }
 
     @Test
+    public void testAdIceBergOrderMatch1() {
+        OrderMatcher orderMatcher = new OrderMatcher();
+        orderMatcher.addOrder(new IceBergOrder(1, Side.BUY, 5, 100, 50));
+        orderMatcher.getOrders(Side.BUY);
+        List<Order> orders = orderMatcher.getOrders(Side.BUY);
+        System.out.println("1 orders = " + orders);
+//
+//        List<Trade> trades = orderMatcher.addOrder(new Order(2, Side.SELL, 5, 50));
+//        System.out.println(trades.size() + " trades = " + trades);
+//        assertEquals(1, trades.size());
+//        assertTrade(5, 50, trades.get(0));
+//
+//        List<Order> orders = orderMatcher.getOrders(Side.BUY);
+//        System.out.println("1 orders = " + orders);
+//
+//        trades = orderMatcher.addOrder(new Order(3, Side.SELL, 5, 20));
+//        System.out.println("2 trades = " + trades);
+//
+//        orders = orderMatcher.getOrders(Side.BUY);
+//        System.out.println("2 orders = " + orders);
+//
+//        trades = orderMatcher.addOrder(new Order(4, Side.SELL, 5, 30));
+//        System.out.println("3 trades = " + trades);
+//
+//        orders = orderMatcher.getOrders(Side.BUY);
+//        System.out.println("3 orders = " + orders);
+    }
+
+    @Test
     public void testMatch12() {
         OrderMatcher orderMatcher = new OrderMatcher();
         orderMatcher.addOrder(new Order(1, Side.BUY, 5, 100));

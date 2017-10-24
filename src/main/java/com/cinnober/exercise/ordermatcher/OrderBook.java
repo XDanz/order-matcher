@@ -102,11 +102,15 @@ public class OrderBook {
                     break;
                 }
             }
-
         }
 
         if (currQty > 0) {
-            add(order.getSide(), order.getPrice(), currQty,  order.getId());
+            if (IceBergOrder.class.isInstance(order)) {
+                IceBergOrder iceBergOrder = IceBergOrder.class.cast(order);
+                addIceBergOrder(order.getSide(), order.getPrice(), currQty, iceBergOrder.getDisplayQuantity(), order.getId());
+            } else {
+                add(order.getSide(), order.getPrice(), currQty, order.getId());
+            }
         }
         return trades;
     }
@@ -139,9 +143,15 @@ public class OrderBook {
      * @param qty The amount of volume (qty) to add to the order book
      */
     private void add(Side side, Long price, Long qty, Long orderId) {
-        Map<Long, OrdersAtPrice> orderBookSide = getOrderBookSide(side);
+        addOrderAtPrice(price, new Order(orderId, side, price, qty));
+    }
 
-        Order order = new Order(orderId, side, price, qty);
+    private void addIceBergOrder(Side side, Long price, Long qty, Long displayQty, Long orderId) {
+        addOrderAtPrice(price, new IceBergOrder(orderId, side, price, qty, displayQty));
+    }
+
+    private void addOrderAtPrice(Long price, Order order) {
+        Map<Long, OrdersAtPrice> orderBookSide = getOrderBookSide(order.getSide());
 
         if (orderBookSide.containsKey(price)) {
             OrdersAtPrice ordersAtPrice = orderBookSide.get(price);
@@ -152,6 +162,7 @@ public class OrderBook {
             orderBookSide.put(price, ordersAtPrice);
         }
     }
+
 
     /**
      * Match the activeOrderId with qty (volume) and price with orders at the given
