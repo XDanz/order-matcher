@@ -1,7 +1,6 @@
 package com.cinnober.exercise.ordermatcher;
 
 import java.util.*;
-import java.util.concurrent.ConcurrentSkipListMap;
 
 /**
  *
@@ -24,8 +23,8 @@ import java.util.concurrent.ConcurrentSkipListMap;
 public class OrderBook {
 
     private final String securityId;
-    private final NavigableMap<Long, OrdersAtPrice> bids = new ConcurrentSkipListMap<>(Comparator.reverseOrder());
-    private final NavigableMap<Long, OrdersAtPrice> offers = new ConcurrentSkipListMap<>(Comparator.naturalOrder());
+    private final SortedMap<Long, OrdersAtPrice> bids = new TreeMap<>(Comparator.reverseOrder());
+    private final SortedMap<Long, OrdersAtPrice> offers = new TreeMap<>(Comparator.naturalOrder());
 
     OrderBook(String securityId) {
         this.securityId = Objects.requireNonNull(securityId, "securityId cannot be null");
@@ -69,57 +68,63 @@ public class OrderBook {
         long currQty = order.getQuantity();
 
         if (order.getSide().equals(Side.BUY)) {
-
-            Set<Map.Entry<Long, OrdersAtPrice>> entries = getOffers().entrySet();
-
-            for (Map.Entry<Long, OrdersAtPrice> offer : entries) {
-                if ((offer.getKey() <= order.getPrice()) && currQty > 0) {
-                    // sell order exist at a lower price or equal to a buy order in the order book.
-
-                    List<Trade> tradesAtPrice;
-                    tradesAtPrice = matchAtPrice(Side.SELL, offer.getKey(), currQty, order.getId());
-                    trades.addAll(tradesAtPrice);
-                    currQty -= tradesAtPrice.stream().mapToLong(Trade::getQuantity).sum();
-                } else {
-                    break;
-                }
-            }
-
+            currQty = matchBuyOrder(order, currQty, trades);
         } else if (order.getSide().equals(Side.SELL)) {
-
-            Set<Map.Entry<Long, OrdersAtPrice>> entries = getBids().entrySet();
-
-
-            for (Map.Entry<Long, OrdersAtPrice> bid : entries) {
-                if ((bid.getKey() >= order.getPrice()) && currQty > 0) {
-                    // buy order exist at a higher price or equal to a sell order in the order book.
-
-                    List<Trade> tradesAtPrice;
-                    tradesAtPrice = matchAtPrice(Side.BUY, bid.getKey(), currQty, order.getId());
-                    trades.addAll(tradesAtPrice);
-                    currQty -= tradesAtPrice.stream().mapToLong(Trade::getQuantity).sum();
-                } else {
-                    break;
-                }
-            }
-
+            currQty = matchSellOrder(order, currQty, trades);
         }
 
         if (currQty > 0) {
-            add(order.getSide(), order.getPrice(), currQty,  order.getId());
+            add(order, currQty);
         }
+
+        getOffers().entrySet().removeIf(entry -> entry.getValue().getTotalQuantity() == 0);
+        getBids().entrySet().removeIf(entry -> entry.getValue().getTotalQuantity() == 0);
         return trades;
+    }
+
+    private Long matchBuyOrder(Order order, Long currQty, List<Trade> trades) {
+
+        Set<Map.Entry<Long, OrdersAtPrice>> entries = getOffers().entrySet();
+
+        for (Map.Entry<Long, OrdersAtPrice> offer : entries) {
+            if ((offer.getKey() <= order.getPrice()) && currQty > 0) {
+                // sell order exist at a lower price or equal to a buy order in the order book.
+                currQty = match(offer, currQty, trades, order);
+            } else {
+                break;
+            }
+        }
+        return currQty;
+    }
+
+    private Long matchSellOrder(Order order, Long currQty, List<Trade> trades) {
+
+        Set<Map.Entry<Long, OrdersAtPrice>> entries = getBids().entrySet();
+
+        for (Map.Entry<Long, OrdersAtPrice> bid : entries) {
+            if ((bid.getKey() >= order.getPrice()) && currQty > 0) {
+                // buy order exist at a higher price or equal to a sell order in the order book.
+                currQty = match(bid, currQty, trades, order);
+            } else {
+                break;
+            }
+        }
+        return currQty;
+    }
+
+    private Long match(Map.Entry<Long, OrdersAtPrice> entry, Long currQty, List<Trade> trades, Order order) {
+        List<Trade> tradesAtPrice;
+        tradesAtPrice = matchAtPrice(entry, currQty, order.getId());
+        trades.addAll(tradesAtPrice);
+        currQty -= tradesAtPrice.stream().mapToLong(Trade::getQuantity).sum();
+        return currQty;
     }
 
     private static class OrdersAtPrice {
         private final List<Order> orders = new ArrayList<>();
 
         long getTotalQuantity() {
-            Long sum = 0L;
-            for (Order order : orders) {
-                sum += order.getQuantity();
-            }
-            return sum;
+            return orders.stream().mapToLong(Order::getQuantity).sum();
         }
 
         List<Order> getOrders() {
@@ -134,23 +139,20 @@ public class OrderBook {
     /**
      * Add the volume (qty) amount at the given price to the order book.
      *
-     * @param side BID or SELL
-     * @param price The price
      * @param qty The amount of volume (qty) to add to the order book
      */
-    private void add(Side side, Long price, Long qty, Long orderId) {
-        Map<Long, OrdersAtPrice> orderBookSide = getOrderBookSide(side);
+    private void add(Order order, Long qty) {
+        Map<Long, OrdersAtPrice> orderBookSide = getOrderBookSide(order.getSide());
 
-        Order order = new Order(orderId, side, price, qty);
+        Order remaingOrder = new Order(order.getId(), order.getSide(), order.getPrice(), qty);
 
-        if (orderBookSide.containsKey(price)) {
-            OrdersAtPrice ordersAtPrice = orderBookSide.get(price);
-            ordersAtPrice.addOrder(order);
-        } else {
+        orderBookSide.computeIfPresent(order.getPrice(), (key, ordersAtPrice) -> { ordersAtPrice.addOrder(remaingOrder); return ordersAtPrice;});
+
+        orderBookSide.computeIfAbsent(order.getPrice(), key -> {
             OrdersAtPrice ordersAtPrice = new OrdersAtPrice();
-            ordersAtPrice.addOrder(order);
-            orderBookSide.put(price, ordersAtPrice);
-        }
+            ordersAtPrice.addOrder(remaingOrder);
+            return ordersAtPrice;
+        });
     }
 
     /**
@@ -161,49 +163,38 @@ public class OrderBook {
      * order has been filled it is removed from the order queue and when all
      * orders has been filled the price at the the side is removed from the order book.
      *
-     * @param side BID or OFFER
-     * @param price The price
+     * @param entry BID or OFFER
      * @param qty The amount of volume to remove from the orders
      * @param activeOrderId The active orderId
      * @return List of matching trades @ given price
      */
-    private List<Trade> matchAtPrice(Side side, Long price, Long qty, Long activeOrderId) {
+    private List<Trade> matchAtPrice(Map.Entry<Long, OrdersAtPrice> entry, Long qty, Long activeOrderId) {
         List<Trade> trades = new ArrayList<>();
 
-        Map<Long, OrdersAtPrice> orderBookSide = getOrderBookSide(side);
-        if (orderBookSide.containsKey(price)) {
-            OrdersAtPrice ordersAtPrice = orderBookSide.get(price);
-            List<Order> queueOrders = ordersAtPrice.getOrders();
+        Long price = entry.getKey();
+        List<Order> queueOrders = entry.getValue().getOrders();
 
-            Long availQty = qty;
+        Long availQty = qty;
 
-            for (Iterator<Order> it = queueOrders.iterator(); it.hasNext();) {
-                Order order = it.next();
-                if (availQty > order.getQuantity()) {
-                    availQty -= order.getQuantity();
-                    trades.add(new Trade(activeOrderId, order.getId(), price, order.getQuantity()));
-                    it.remove();
-                } else if (availQty < order.getQuantity()) {
-                    long diff = order.getQuantity() - availQty;
-                    order.setQuantity(diff);
-                    trades.add(new Trade(activeOrderId, order.getId(), price, availQty));
-                    availQty = 0L;
-                } else {
-                    trades.add(new Trade(activeOrderId, order.getId(), price, order.getQuantity()));
-                    availQty = 0L;
-                    it.remove();
-                }
-
-                if (availQty <= 0)
-                    break;
+        for (Iterator<Order> it = queueOrders.iterator(); it.hasNext();) {
+            Order order = it.next();
+            if (availQty > order.getQuantity()) {
+                availQty -= order.getQuantity();
+                trades.add(new Trade(activeOrderId, order.getId(), price, order.getQuantity()));
+                it.remove();
+            } else if (availQty < order.getQuantity()) {
+                long diff = order.getQuantity() - availQty;
+                order.setQuantity(diff);
+                trades.add(new Trade(activeOrderId, order.getId(), price, availQty));
+                availQty = 0L;
+            } else {
+                trades.add(new Trade(activeOrderId, order.getId(), price, order.getQuantity()));
+                availQty = 0L;
+                it.remove();
             }
 
-        } else {
-            throw new IllegalStateException(" Try to match @ non existing price: " + price);
-        }
-
-        if (orderBookSide.get(price).getTotalQuantity() == 0) {
-            orderBookSide.remove(price);
+            if (availQty <= 0)
+                break;
         }
 
         return trades;
