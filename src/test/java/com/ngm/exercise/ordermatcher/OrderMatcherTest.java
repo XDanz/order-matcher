@@ -1,39 +1,15 @@
-/*
- * Copyright (c) 2014 Cinnober Financial Technology AB, Stockholm,
- * Sweden. All rights reserved.
- * 
- * This software is the confidential and proprietary information of
- * Cinnober Financial Technology AB, Stockholm, Sweden. You shall not
- * disclose such Confidential Information and shall use it only in
- * accordance with the terms of the license agreement you entered into
- * with Cinnober.
- * 
- * Cinnober makes no representations or warranties about the suitability
- * of the software, either expressed or implied, including, but not limited
- * to, the implied warranties of merchantibility, fitness for a particular
- * purpose, or non-infringement. Cinnober shall not be liable for any
- * damages suffered by licensee as a result of using, modifying, or
- * distributing this software or its derivatives.
- */
-
-package com.cinnober.exercise.ordermatcher;
+package com.ngm.exercise.ordermatcher;
 
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
-/**
- *
- * @author mikael.brannstrom
- */
 public class OrderMatcherTest {
 
     public OrderMatcherTest() {
@@ -190,11 +166,11 @@ public class OrderMatcherTest {
      * @param expRemainingOrders the expected remaining orders after matching all orders.
      * First buy orders then sell orders, both in priority order.
      */
-    private void testMatch(List<String> inputOrders, List<String> expTrades, List<String> expRemainingOrders) {
+    private void testMatch(final List<String> inputOrders, final List<String> expTrades, List<String> expRemainingOrders) {
         OrderMatcher matcher = new OrderMatcher();
         ArrayList<Trade> trades = new ArrayList<>();
         // add orders
-        inputOrders.stream().map(s -> Order.parse(s)).forEach(o -> trades.addAll(matcher.addOrder(o)));
+        inputOrders.stream().map(Order::parse).forEach(o -> trades.addAll(matcher.placeOrder(o)));
 
         // verify trades
         assertEquals(expTrades, trades.stream().map(Trade::toString).collect(Collectors.toList()));

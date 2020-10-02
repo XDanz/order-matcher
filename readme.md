@@ -17,7 +17,7 @@ The priority of the orders to match is based on the following:
   1. On the __price__ that is best for the active order (the one just entered)
   2. On the __time__ the order was entered (first come first served)
 
-There is a skeleton class `com.cinnober.exercise.ordermatcher.OrderMatcher` which contains a few methods that need to be implemented. There are also a few JUnit test cases that currently fails. Implement the methods correctly and they will pass.
+There is a skeleton class `OrderMatcher` which contains a few methods that need to be implemented. There are also a few JUnit test cases that currently fails. Implement the methods correctly and they will pass.
 
 
 ## Build and Run ##

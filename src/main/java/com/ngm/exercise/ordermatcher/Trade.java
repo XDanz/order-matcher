@@ -16,7 +16,7 @@
  * distributing this software or its derivatives.
  */
 
-package com.cinnober.exercise.ordermatcher;
+package com.ngm.exercise.ordermatcher;
 
 /**
  * A matched trade.

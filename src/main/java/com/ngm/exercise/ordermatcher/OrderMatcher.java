@@ -1,22 +1,4 @@
-/*
- * Copyright (c) 2014 Cinnober Financial Technology AB, Stockholm,
- * Sweden. All rights reserved.
- * 
- * This software is the confidential and proprietary information of
- * Cinnober Financial Technology AB, Stockholm, Sweden. You shall not
- * disclose such Confidential Information and shall use it only in
- * accordance with the terms of the license agreement you entered into
- * with Cinnober.
- * 
- * Cinnober makes no representations or warranties about the suitability
- * of the software, either expressed or implied, including, but not limited
- * to, the implied warranties of merchantibility, fitness for a particular
- * purpose, or non-infringement. Cinnober shall not be liable for any
- * damages suffered by licensee as a result of using, modifying, or
- * distributing this software or its derivatives.
- */
-
-package com.cinnober.exercise.ordermatcher;
+package com.ngm.exercise.ordermatcher;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
@@ -29,7 +11,7 @@ import java.util.List;
  * buy and sell orders are entered into this order book and the prices are
  * set according to specific rules. Bids and asks are matched and trades
  * occur.
-
+ *
  * <p>This class keeps an order book, that can determine in real-time the
  * current market price and combine matching orders to trades. Each order
  * has a quantity and a price.
@@ -49,27 +31,21 @@ import java.util.List;
  * </ol>
  *
  * <p><b>Note:</b> some methods are not yet implemented. This is your job!
- * See {@link #addOrder(Order)} and {@link #getOrders(Side)}.
+ * See {@link #placeOrder(Order)} and {@link #getOrders(Side)}.
  */
 public class OrderMatcher {
 
-
-    private final OrderBook orderBook = new OrderBook("2X7");
-
-    /**
-     * Create a new order matcher.
-     */
-    public OrderMatcher() {
-    }
+    private final OrderBook orderBook = new OrderBook();
 
     /**
-     * Add the specified order to the order book.
+     * Place the specified order to the order book.
      *
-     * @param order the order to be added, not null. The order will not be modified by the caller after this call.
+     * @param order the order to be added.
+     *              The order will not be modified by the caller after this call.
      * @return any trades that were created by this order, not null.
      */
-    public List<Trade> addOrder(Order order) {
-        return orderBook.addOrder(order);
+    public List<Trade> placeOrder(final Order order) {
+        return orderBook.placeOrder(order);
     }
 
     /**
@@ -81,28 +57,27 @@ public class OrderMatcher {
      * @param side the side, not null.
      * @return all remaining orders in the order book, in priority order, for the specified side, not null.
      */
-    public List<Order> getOrders(Side side) {
+    public List<Order> getOrders(final Side side) {
         return orderBook.getOrders(side);
     }
 
-
-
-    public static void main(String... args) throws Exception {
+    public static void main(final String... args) throws Exception {
         OrderMatcher matcher = new OrderMatcher();
         System.out.println("Welcome to the order matcher. Type 'help' for a list of commands.");
         System.out.println();
         BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
         String line;
-        LOOP: while ((line=reader.readLine()) != null) {
+        LOOP:
+        while ( (line = reader.readLine()) != null) {
             line = line.trim();
             try {
-                switch(line) {
+                switch (line) {
                     case "help":
                         System.out.println("Available commands: \n"
-                                + "  buy|sell <quantity>@<price> [#<id>]  - Enter an order.\n"
-                                + "  list                                 - List all remaining orders.\n"
-                                + "  quit                                 - Quit.\n"
-                                + "  help                                 - Show help (this message).\n");
+                            + "  buy|sell <quantity>@<price> [#<id>]  - Enter an order.\n"
+                            + "  list                                 - List all remaining orders.\n"
+                            + "  quit                                 - Quit.\n"
+                            + "  help                                 - Show help (this message).\n");
                         break;
                     case "":
                         // ignore
@@ -111,17 +86,23 @@ public class OrderMatcher {
                         break LOOP;
                     case "list":
                         System.out.println("BUY:");
-                        matcher.getOrders(Side.BUY).stream().map(Order::toString).forEach(System.out::println);
+                        matcher.getOrders(Side.BUY).stream()
+                            .map(Order::toString)
+                            .forEach(System.out::println);
                         System.out.println("SELL:");
-                        matcher.getOrders(Side.SELL).stream().map(Order::toString).forEach(System.out::println);
+                        matcher.getOrders(Side.SELL).stream()
+                            .map(Order::toString)
+                            .forEach(System.out::println);
                         break;
                     default: // order
-                        matcher.addOrder(Order.parse(line)).stream().map(Trade::toString).forEach(System.out::println);
+                        matcher.placeOrder(Order.parse(line)).stream()
+                            .map(Trade::toString)
+                            .forEach(System.out::println);
                         break;
                 }
-            } catch (IllegalArgumentException e) {
+            } catch (final IllegalArgumentException e) {
                 System.err.println("Bad input: " + e.getMessage());
-            } catch (UnsupportedOperationException e) {
+            } catch (final UnsupportedOperationException e) {
                 System.err.println("Sorry, this command is not supported yet: " + e.getMessage());
             }
         }

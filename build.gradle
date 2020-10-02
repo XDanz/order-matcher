@@ -5,12 +5,12 @@ repositories {
 }
 
 apply plugin: 'java'
-sourceCompatibility = "1.8"
+sourceCompatibility = "11"
 apply plugin: 'eclipse'
 
 // application packaging
 apply plugin: 'application'
-mainClassName = 'com.cinnober.exercise.ordermatcher.OrderMatcher'
+mainClassName = 'com.ngm.exercise.ordermatcher.OrderMatcher'
 
 // capture console input
 run {
@@ -23,8 +23,13 @@ test {
     events "started","passed","skipped","failed"
       showStandardStreams = true
   }
+  useJUnitPlatform()
 }
 
 dependencies {
-  testCompile group: 'junit', name: 'junit', version:'4.11'
+  testCompile group: 'org.junit.jupiter', name: 'junit-jupiter-api', version: '5.6.2'
+  testCompile group: 'org.junit.jupiter', name: 'junit-jupiter-params', version: '5.6.2'
+  testCompile group: 'org.junit.jupiter', name: 'junit-jupiter-engine', version: '5.6.2'
+  testCompile group: 'org.assertj', name: 'assertj-core', version: '3.6.1'
+
 }

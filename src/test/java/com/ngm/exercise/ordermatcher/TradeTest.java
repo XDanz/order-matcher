@@ -1,13 +1,13 @@
 /*
  * Copyright (c) 2014 Cinnober Financial Technology AB, Stockholm,
  * Sweden. All rights reserved.
- * 
+ *
  * This software is the confidential and proprietary information of
  * Cinnober Financial Technology AB, Stockholm, Sweden. You shall not
  * disclose such Confidential Information and shall use it only in
  * accordance with the terms of the license agreement you entered into
  * with Cinnober.
- * 
+ *
  * Cinnober makes no representations or warranties about the suitability
  * of the software, either expressed or implied, including, but not limited
  * to, the implied warranties of merchantibility, fitness for a particular
@@ -16,15 +16,12 @@
  * distributing this software or its derivatives.
  */
 
-package com.cinnober.exercise.ordermatcher;
+package com.ngm.exercise.ordermatcher;
 
-import org.junit.Test;
-import static org.junit.Assert.*;
+import org.junit.jupiter.api.Test;
 
-/**
- *
- * @author mikael.brannstrom
- */
+import static org.assertj.core.api.Assertions.assertThat;
+
 public class TradeTest {
 
     public TradeTest() {
@@ -32,8 +29,11 @@ public class TradeTest {
 
     @Test
     public void testToString() {
-        assertEquals("TRADE 100@5 (#1/#2)", new Trade(1, 2, 5, 100).toString());
-        assertEquals("TRADE 100@5 (#4/#3)", new Trade(4, 3, 5, 100).toString());
+        assertThat(new Trade(1, 2, 5, 100).toString())
+            .isEqualTo("TRADE 100@5 (#1/#2)");
+
+        assertThat(new Trade(4, 3, 5, 100).toString())
+            .isEqualTo("TRADE 100@5 (#4/#3)");
     }
 
 }
