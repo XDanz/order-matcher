@@ -8,16 +8,13 @@ apply plugin: 'java'
 sourceCompatibility = "11"
 apply plugin: 'eclipse'
 
-// application packaging
 apply plugin: 'application'
-mainClassName = 'com.ngm.exercise.ordermatcher.OrderMatcher'
+mainClassName = 'com.ngm.OrderMatcher'
 
-// capture console input
 run {
   standardInput = System.in
 }
 
-// show test output on the console
 test {
   testLogging {
     events "started","passed","skipped","failed"
