@@ -9,7 +9,7 @@ sourceCompatibility = "11"
 apply plugin: 'eclipse'
 
 apply plugin: 'application'
-mainClassName = 'com.ngm.OrderMatcher'
+mainClassName = 'se.ngm.ordermatcher.OrderMatcher'
 
 run {
   standardInput = System.in
