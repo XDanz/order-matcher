@@ -31,7 +31,6 @@ public class Order {
     }
 
     private void set(final AbstractBuilder<?, ?> builder) {
-        //this.id = builder.id;
         this.price = builder.price;
         this.qty = builder.qty;
     }
@@ -49,7 +48,7 @@ public class Order {
     }
 
     public void setQty(long qty) {
-        Require.that(qty >= 0, "quantity must be >= 0");
+        Require.that(qty >= 0, "qty must be >= 0");
         this.qty = qty;
     }
 
