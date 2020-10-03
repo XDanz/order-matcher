@@ -110,7 +110,7 @@ public class OrderBook {
         for (final Map.Entry<Long, QueuedOrdersAtPrice> sellOrderAtPrice : sellOrdersAtPrice) {
             if ((sellOrderAtPrice.getKey() <= buyOrder.getPrice()) && currQty > 0) {
                 // sell order exist at a lower price or equal to a buy order in the order book.
-                currQty = match(buyOrder, sellOrderAtPrice, currQty, trades);
+                currQty = match(sellOrderAtPrice, currQty, trades);
             } else {
                 break;
             }
@@ -125,7 +125,7 @@ public class OrderBook {
         for (final Map.Entry<Long, QueuedOrdersAtPrice> buyOrderAtPrice : buyOrdersAtPrice) {
             if ((buyOrderAtPrice.getKey() >= sellOrder.getPrice()) && currQty > 0) {
                 // buy order exist at a higher price or equal to a sell order in the order book.
-                currQty = match(sellOrder, buyOrderAtPrice, currQty, trades);
+                currQty = match(buyOrderAtPrice, currQty, trades);
             } else {
                 break;
             }
@@ -133,9 +133,9 @@ public class OrderBook {
         return currQty;
     }
 
-    private Long match(final Order order, final Map.Entry<Long, QueuedOrdersAtPrice> ordersAtPrice,
+    private Long match(final Map.Entry<Long, QueuedOrdersAtPrice> ordersAtPrice,
                        Long currQty, final List<Trade> trades) {
-        final List<Trade> tradesAtPrice = Matcher.matchAtPrice(ordersAtPrice, currQty, order.getId());
+        final List<Trade> tradesAtPrice = Matcher.matchAtPrice(ordersAtPrice, currQty);
         trades.addAll(tradesAtPrice);
         currQty -= tradesAtPrice.stream()
             .mapToLong(Trade::getQty)
@@ -152,10 +152,10 @@ public class OrderBook {
         final Map<Long, QueuedOrdersAtPrice> ordersBySide = getOrdersBySide(order.getSide());
 
         final Order remainingOrder =
-            Order.builder().id(order.getId())
-            .side(order.getSide())
-            .price(order.getPrice())
-            .qty(qty).build();
+            Order.builder()
+                .side(order.getSide())
+                .price(order.getPrice())
+                .qty(qty).build();
 
         ordersBySide.computeIfPresent(order.getPrice(),
             (key, queuedOrdersAtPrice) -> {

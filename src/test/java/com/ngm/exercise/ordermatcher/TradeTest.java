@@ -18,6 +18,7 @@
 
 package com.ngm.exercise.ordermatcher;
 
+import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -29,11 +30,8 @@ public class TradeTest {
 
     @Test
     public void testToString() {
-        assertThat(new Trade(1, 2, 5, 100).toString())
-            .isEqualTo("TRADE 100@5 (#1/#2)");
-
-        assertThat(new Trade(4, 3, 5, 100).toString())
-            .isEqualTo("TRADE 100@5 (#4/#3)");
+        assertThat(Trade.builder().qty(100).price(5).build().toString())
+            .isEqualTo("TRADE 100@5");
     }
 
 }

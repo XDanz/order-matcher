@@ -19,34 +19,30 @@ class MatcherTest {
 
     private static Stream<Arguments> provider() {
         return Stream.of(
-            Arguments.of(3, 3,
-                of(Trade.builder().actOrdId(3).price(PRICE_100).queuedOrdId(1).qty(3).build())),
-            Arguments.of(75, 3,
-                of(Trade.builder().actOrdId(3).price(PRICE_100).queuedOrdId(1).qty(50).build(),
-                    Trade.builder().actOrdId(3).price(PRICE_100).queuedOrdId(2).qty(25).build())),
-            Arguments.of(100, 3,
-                of(Trade.builder().actOrdId(3).price(PRICE_100).queuedOrdId(1).qty(50).build(),
-                    Trade.builder().actOrdId(3).price(PRICE_100).queuedOrdId(2).qty(50).build())),
-            Arguments.of(150, 3,
-                of(Trade.builder().actOrdId(3).price(PRICE_100).queuedOrdId(1).qty(50).build(),
-                    Trade.builder().actOrdId(3).price(PRICE_100).queuedOrdId(2).qty(50).build())));
+            Arguments.of(3, of(Trade.builder().price(PRICE_100).qty(3).build())),
+            Arguments.of(75, of(Trade.builder().price(PRICE_100).qty(50).build(),
+                Trade.builder().price(PRICE_100).qty(25).build())),
+            Arguments.of(100, of(Trade.builder().price(PRICE_100).qty(50).build(),
+                Trade.builder().price(PRICE_100).qty(50).build())),
+            Arguments.of(150, of(Trade.builder().price(PRICE_100).qty(50).build(),
+                Trade.builder().price(PRICE_100).qty(50).build())));
     }
 
     @BeforeEach
     void setUp() {
         QueuedOrdersAtPrice ordersAtPrice = new QueuedOrdersAtPrice();
         ordersAtPrice.addOrder(OrderTestBuilder.buyOrder()
-            .id(1).qty(50).build());
+            .qty(50).build());
         ordersAtPrice.addOrder(OrderTestBuilder.buyOrder()
-            .id(2).qty(50).build());
+            .qty(50).build());
         entry =
             MapEntry.entry(PRICE_100, ordersAtPrice);
     }
 
     @ParameterizedTest()
     @MethodSource("provider")
-    void matchAtPrice(final long qty, final long activeOrdId, final List<Trade> expected) {
-        List<Trade> trades = Matcher.matchAtPrice(entry, qty, activeOrdId);
+    void matchAtPrice(final long qty, final List<Trade> expected) {
+        List<Trade> trades = Matcher.matchAtPrice(entry, qty);
         Assertions.assertThat(trades).isEqualTo(expected);
     }
 }

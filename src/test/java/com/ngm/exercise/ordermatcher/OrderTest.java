@@ -8,26 +8,26 @@ public class OrderTest {
 
     @Test
     void test_order_values() {
-        final Order order = Order.builder().id(1).price(10).qty(100)
+        final Order order = Order.builder().price(10).qty(100)
             .side(Side.BUY)
             .build();
-        assertThat(order).extracting("id", "price", "qty", "side")
-            .containsExactly(1L, 10L, 100L, Side.BUY);
+        assertThat(order).extracting("price", "qty", "side")
+            .containsExactly(10L, 100L, Side.BUY);
     }
 
     @Test
     void test_buy_order_values() {
-        final Order order = Order.buyOrder().id(1).price(10).qty(100)
+        final Order order = Order.buyOrder().price(10).qty(100)
             .build();
-        assertThat(order).extracting("id", "price", "qty", "side")
-            .containsExactly(1L, 10L, 100L, Side.BUY);
+        assertThat(order).extracting("price", "qty", "side")
+            .containsExactly(10L, 100L, Side.BUY);
     }
 
     @Test
     void test_sell_order_values() {
-        final Order order = Order.sellOrder().id(1).price(10).qty(100)
+        final Order order = Order.sellOrder().price(10).qty(100)
             .build();
-        assertThat(order).extracting("id", "price", "qty", "side")
-            .containsExactly(1L, 10L, 100L, Side.SELL);
+        assertThat(order).extracting("price", "qty", "side")
+            .containsExactly(10L, 100L, Side.SELL);
     }
 }

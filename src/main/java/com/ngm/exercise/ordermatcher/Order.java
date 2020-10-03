@@ -3,7 +3,6 @@ package com.ngm.exercise.ordermatcher;
 import static java.util.Objects.hash;
 
 public class Order {
-    private long id;
     private final Side side;
     private long price;
     private long qty;
@@ -32,13 +31,9 @@ public class Order {
     }
 
     private void set(final AbstractBuilder<?, ?> builder) {
-        this.id = builder.id;
+        //this.id = builder.id;
         this.price = builder.price;
         this.qty = builder.qty;
-    }
-
-    public long getId() {
-        return id;
     }
 
     public Side getSide() {
@@ -59,18 +54,12 @@ public class Order {
     }
 
     public abstract static class AbstractBuilder<B extends AbstractBuilder<B, T>, T> {
-        protected long id;
         protected long price;
         protected long qty;
 
         protected abstract B self();
 
         public abstract T build();
-
-        public B id(final long id) {
-            this.id = id;
-            return self();
-        }
 
         public B price(final long price) {
             this.price = price;
@@ -144,7 +133,7 @@ public class Order {
 
     @Override
     public String toString() {
-        return side + " " + qty + "@" + price + " #" + id;
+        return side + " " + qty + "@" + price;
     }
 
     @Override
@@ -152,14 +141,13 @@ public class Order {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         final Order order = (Order) o;
-        return id == order.id &&
-            price == order.price &&
+        return price == order.price &&
             qty == order.qty &&
             side == order.side;
     }
 
     @Override
     public int hashCode() {
-        return hash(id, side, price, qty);
+        return hash(side, price, qty);
     }
 }

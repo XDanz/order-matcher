@@ -12,23 +12,25 @@ import static org.assertj.core.api.Assertions.tuple;
 
 public class OrderMatcherTest2 {
 
-    private static final Order BUY_100_at_5_ID_1 = buyOrder().qty(100).price(5).id(1).build();
-    private static final Order BUY_100_at_4_ID_2 = buyOrder().qty(100).price(4).id(2).build();
+    private static final Order BUY_100_at_5_ID_1 = buyOrder().qty(100).price(5).build();
+    private static final Order BUY_100_at_4_ID_2 = buyOrder().qty(100).price(4).build();
+    private static final Order BUY_60_at_10 = buyOrder().qty(60).price(10).build();
 
-    private static final Order BUY_300_at_5_ID_3 = buyOrder().qty(300).price(5).id(3).build();
-    private static final Order BUY_50_at_5_ID_3 = buyOrder().qty(50).price(5).id(3).build();
-    private static final Order BUY_150_at_10_ID_3 = buyOrder().qty(150).price(10).id(2).build();
+    private static final Order BUY_300_at_5_ID_3 = buyOrder().qty(300).price(5).build();
+    private static final Order BUY_50_at_5_ID_3 = buyOrder().qty(50).price(5).build();
+    private static final Order BUY_150_at_10_ID_3 = buyOrder().qty(150).price(10).build();
 
-    private static final Order SELL_100_at_5_ID_1 = sellOrder().qty(100).price(5).id(1).build();
-    private static final Order SELL_100_at_4_ID_2 = sellOrder().qty(100).price(4).id(2).build();
-    private static final Order SELL_300_at_4_ID_2 = sellOrder().qty(300).price(4).id(2).build();
+    private static final Order SELL_100_at_5_ID_1 = sellOrder().qty(100).price(5).build();
+    private static final Order SELL_100_at_4_ID_2 = sellOrder().qty(100).price(4).build();
+    private static final Order SELL_100_at_10 = sellOrder().qty(100).price(10).build();
+    private static final Order SELL_300_at_4_ID_2 = sellOrder().qty(300).price(4).build();
 
-    private static final Order SELL_50_at_5_ID_2 = sellOrder().qty(50).price(5).id(2).build();
-    private static final Order SELL_20_at_5_ID_3 = sellOrder().qty(20).price(5).id(3).build();
-    private static final Order SELL_30_at_5_ID_4 = sellOrder().qty(30).price(5).id(4).build();
+    private static final Order SELL_50_at_5_ID_2 = sellOrder().qty(50).price(5).build();
+    private static final Order SELL_20_at_5_ID_3 = sellOrder().qty(20).price(5).build();
+    private static final Order SELL_30_at_5_ID_4 = sellOrder().qty(30).price(5).build();
 
-    private static final Order SELL_50_at_10_ID_1 = Order.sellOrder().id(1).qty(50).price(10).build();
-    private static final Order SELL_100_at_10_ID_2 = Order.sellOrder().id(2).qty(100).price(10).build();
+    private static final Order SELL_50_at_10_ID_1 = Order.sellOrder().qty(50).price(10).build();
+    private static final Order SELL_100_at_10_ID_2 = Order.sellOrder().qty(100).price(10).build();
 
 
     /**
@@ -43,6 +45,9 @@ public class OrderMatcherTest2 {
         OrderMatcher orderMatcher = new OrderMatcher();
         orderMatcher.placeOrder(BUY_100_at_5_ID_1);
     }
+
+
+
 
     @DisplayName("Match 1 queued order 3 times and check removal from order book")
     @Test
@@ -134,7 +139,7 @@ public class OrderMatcherTest2 {
 
     @DisplayName("2 queued orders match all none remaining")
     @Test
-    public void test6() throws Exception {
+    public void test6() {
         OrderMatcher orderMatcher = new OrderMatcher();
         orderMatcher.placeOrder(SELL_50_at_10_ID_1);
         orderMatcher.placeOrder(SELL_100_at_10_ID_2);

@@ -1,8 +1,7 @@
 package com.ngm.exercise.ordermatcher;
 
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
 import java.util.List;
+import java.util.Scanner;
 
 /**
  * Order book with continuous matching of limit orders with time priority.
@@ -61,43 +60,40 @@ public class OrderMatcher {
         return orderBook.getOrders(side);
     }
 
-    public static void main(final String... args) throws Exception {
+    public static void main(final String... args) {
         OrderMatcher matcher = new OrderMatcher();
-        System.out.println("Welcome to the order matcher. Type 'help' for a list of commands.");
+        System.out.println("Welcome to the order matcher. Type 'help' for a list of commands. To quit hit 'Ctrl+d' or 'QUIT'");
         System.out.println();
-        BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
+        Scanner scanner = new Scanner(System.in);
         String line;
         LOOP:
-        while ( (line = reader.readLine()) != null) {
+        while (scanner.hasNext()) {
+            line = scanner.nextLine();
             line = line.trim();
             try {
                 switch (line) {
-                    case "help":
+                    case "HELP":
                         System.out.println("Available commands: \n"
-                            + "  buy|sell <quantity>@<price> [#<id>]  - Enter an order.\n"
-                            + "  list                                 - List all remaining orders.\n"
-                            + "  quit                                 - Quit.\n"
-                            + "  help                                 - Show help (this message).\n");
+                            + "  BUY|SELL <quantity>@<price>  - Enter an order.\n"
+                            + "  PRINT                         - List all remaining orders.\n"
+                            + "  QUIT                         - Quit.\n"
+                            + "  HELP                         - Show help (this message).\n");
                         break;
                     case "":
                         // ignore
                         break;
-                    case "quit":
+                    case "QUIT":
                         break LOOP;
-                    case "list":
-                        System.out.println("BUY:");
-                        matcher.getOrders(Side.BUY).stream()
-                            .map(Order::toString)
-                            .forEach(System.out::println);
-                        System.out.println("SELL:");
-                        matcher.getOrders(Side.SELL).stream()
-                            .map(Order::toString)
-                            .forEach(System.out::println);
+                    case "PRINT":
+                        System.out.println("--- BUY ---");
+                        print(matcher.getOrders(Side.BUY));
+                        System.out.println("--- SELL ---");
+                        print(matcher.getOrders(Side.SELL));
                         break;
-                    default: // order
-                        matcher.placeOrder(OrderParserUtil.parseOrder(line)).stream()
-                            .map(Trade::toString)
-                            .forEach(System.out::println);
+                    default:
+                        Order order = OrderParserUtil.parseOrder(line);
+                        List<Trade> trades = matcher.placeOrder(order);
+                        print(trades);
                         break;
                 }
             } catch (final IllegalArgumentException e) {
@@ -107,5 +103,11 @@ public class OrderMatcher {
             }
         }
         System.out.println("Good bye!");
+    }
+
+    private static void print(final List<?> orders) {
+        for (final Object order : orders) {
+            System.out.println(order);
+        }
     }
 }

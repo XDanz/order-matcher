@@ -14,17 +14,15 @@ public class OrderParserUtil {
             long qty = qtyAndPrice[0];
             long price = qtyAndPrice[1];
 
-            long id = getId(sc);
-
             if (Side.SELL.equals(sid)) {
-                return Order.sellOrder().id(id).price(price).qty(qty).build();
+                return Order.sellOrder().price(price).qty(qty).build();
             } else {
-                return Order.buyOrder().id(id).price(price).qty(qty).build();
+                return Order.buyOrder().price(price).qty(qty).build();
             }
         } catch (final Exception e) {
             throw new IllegalArgumentException(
                 String.format(
-                    "Illegal format. Expected: <buy|sell> <quantity>@<price> #<id>, where <quantity>,<price> and id is numeric ('%s')", order));
+                    "Illegal format. Expected: <buy|sell> <quantity>@<price>, where <quantity>,<price> is numeric ('%s')", order));
         }
     }
 
