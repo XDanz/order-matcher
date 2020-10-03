@@ -21,7 +21,7 @@ public class OrderMatcherTest1 {
             Arguments.of(of("SELL 50@10", "SELL 100@10", "BUY 150@10"), of("TRADE 50@10", "TRADE 100@10")),
             Arguments.of(of("SELL 100@10", "BUY 100@11"), of("TRADE 100@10")),
             Arguments.of(of("BUY 100@10", "SELL 100@9"), of("TRADE 100@10")),
-            Arguments.of(of("BUY 100@10", "BUY 100@10", "BUY 100@11", "BUY 100@9 #4", "SELL 100@100", "SELL 100@100", "SELL 100@101", "SELL 100@99"), of()),
+            Arguments.of(of("BUY 100@10", "BUY 100@10", "BUY 100@11", "BUY 100@9", "SELL 100@100", "SELL 100@100", "SELL 100@101", "SELL 100@99"), of()),
             Arguments.of(of("BUY 100@10", "BUY 100@10", "BUY 100@11", "BUY 100@9"), of()));
 
     }
