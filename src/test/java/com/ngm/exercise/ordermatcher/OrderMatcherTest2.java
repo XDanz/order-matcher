@@ -30,12 +30,6 @@ public class OrderMatcherTest2 {
     private static final Order SELL_50_at_10_ID_1 = Order.sellOrder().qty(50).price(10).build();
     private static final Order SELL_100_at_10_ID_2 = Order.sellOrder().qty(100).price(10).build();
 
-    @Test
-    void name() {
-        OrderMatcher orderMatcher = new OrderMatcher();
-        orderMatcher.placeOrder(BUY_100_at_5_ID_1);
-    }
-
     @DisplayName("Match 1 queued order 3 times and check removal from order book")
     @Test
     public void test_match_all_qty() {
