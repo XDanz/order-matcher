@@ -1,7 +1,6 @@
 package com.ngm.exercise.ordermatcher;
 
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -12,41 +11,39 @@ import static java.util.Comparator.naturalOrder;
 import static java.util.Comparator.reverseOrder;
 
 /**
- *
  * @author Daniel Terranova
- *
+ * <p>
  * An order book contains two sides a sell and a buy side. The buy/sell side is represented as a
  * SortedMap where the key is the price (Long) and value contains orders at the given price in queue order.
- *
+ * <p>
  * The bid (buy) side is sorted (key i.e price) in reverse natural order.
  * for example:
- *
- *   BUY SIDE
- *   Qty @ price
- *  +---------+
- *  |100 @10  |
- *  | 50 @ 9  |
- *  | 30 @ 8  |
- *  +-------- +
- *
+ * <p>
+ * BUY SIDE
+ * Qty @ price
+ * +---------+
+ * |100 @10  |
+ * | 50 @ 9  |
+ * | 30 @ 8  |
+ * +-------- +
+ * <p>
  * The sell side is sorted (key i.e price) in natural order.
- *
- *    SELL SIDE
- *    Qty @ price
- *   +---------+
- *   | 30 @ 8  |
- *   | 50 @ 9  |
- *   |100 @10  |
- *   +-------- +
- *
+ * <p>
+ * SELL SIDE
+ * Qty @ price
+ * +---------+
+ * | 30 @ 8  |
+ * | 50 @ 9  |
+ * |100 @10  |
+ * +-------- +
+ * <p>
  * Orders are placed in the order book at a given price in insertion order.
- *
+ * <p>
  * When active order is added and matched at a given price the first order is processed and removed if the active
  * order has higher quantity than the current processed (passive) order.
- *
+ * <p>
  * If additional orders at the price exists those orders are processed until all orders is removed
  * from the price and that price is removed from the order book.
- *
  * @version 1.0
  */
 public class OrderBook {
@@ -76,7 +73,7 @@ public class OrderBook {
      * Place an order on the order book.
      *
      * @param order the order to be added.
-     *             The order will not be modified by the caller after this call.
+     *              The order will not be modified by the caller after this call.
      * @return A list of trades that were created by this order, empty if no trades was created.
      */
     public List<Trade> placeOrder(final Order order) {
@@ -102,7 +99,7 @@ public class OrderBook {
 
         getBuyOrdersAtPrice().entrySet()
             .removeIf(entry -> entry.getValue()
-            .getTotalQuantity() == 0);
+                .getTotalQuantity() == 0);
         return trades;
     }
 
@@ -110,8 +107,8 @@ public class OrderBook {
         final Set<Map.Entry<Long, QueuedOrdersAtPrice>> sellOrdersAtPrice =
             getSellOrdersAtPrice().entrySet();
 
-        for (final Map.Entry<Long, QueuedOrdersAtPrice> sellOrderAtPrice: sellOrdersAtPrice) {
-            if ( (sellOrderAtPrice.getKey() <= buyOrder.getPrice()) && currQty > 0) {
+        for (final Map.Entry<Long, QueuedOrdersAtPrice> sellOrderAtPrice : sellOrdersAtPrice) {
+            if ((sellOrderAtPrice.getKey() <= buyOrder.getPrice()) && currQty > 0) {
                 // sell order exist at a lower price or equal to a buy order in the order book.
                 currQty = match(buyOrder, sellOrderAtPrice, currQty, trades);
             } else {
@@ -125,8 +122,8 @@ public class OrderBook {
         final Set<Map.Entry<Long, QueuedOrdersAtPrice>> buyOrdersAtPrice =
             getBuyOrdersAtPrice().entrySet();
 
-        for (final Map.Entry<Long, QueuedOrdersAtPrice> buyOrderAtPrice: buyOrdersAtPrice) {
-            if ( (buyOrderAtPrice.getKey() >= sellOrder.getPrice()) && currQty > 0) {
+        for (final Map.Entry<Long, QueuedOrdersAtPrice> buyOrderAtPrice : buyOrdersAtPrice) {
+            if ((buyOrderAtPrice.getKey() >= sellOrder.getPrice()) && currQty > 0) {
                 // buy order exist at a higher price or equal to a sell order in the order book.
                 currQty = match(sellOrder, buyOrderAtPrice, currQty, trades);
             } else {
@@ -138,30 +135,12 @@ public class OrderBook {
 
     private Long match(final Order order, final Map.Entry<Long, QueuedOrdersAtPrice> ordersAtPrice,
                        Long currQty, final List<Trade> trades) {
-        final List<Trade> tradesAtPrice = matchAtPrice(ordersAtPrice, currQty, order.getId());
+        final List<Trade> tradesAtPrice = Matcher.matchAtPrice(ordersAtPrice, currQty, order.getId());
         trades.addAll(tradesAtPrice);
         currQty -= tradesAtPrice.stream()
             .mapToLong(Trade::getQuantity)
             .sum();
         return currQty;
-    }
-
-    private static class QueuedOrdersAtPrice {
-        private final List<Order> orders = new ArrayList<>();
-
-        long getTotalQuantity() {
-            return orders.stream()
-                .mapToLong(Order::getQuantity)
-                .sum();
-        }
-
-        List<Order> getOrders() {
-            return orders;
-        }
-
-        void addOrder(final Order order) {
-            orders.add(order);
-        }
     }
 
     /**
@@ -176,61 +155,16 @@ public class OrderBook {
             new Order(order.getId(), order.getSide(), order.getPrice(), qty);
 
         ordersBySide.computeIfPresent(order.getPrice(),
-            (key, queuedOrdersAtPrice) -> { queuedOrdersAtPrice.addOrder(remainingOrder);
-            return queuedOrdersAtPrice;});
+            (key, queuedOrdersAtPrice) -> {
+                queuedOrdersAtPrice.addOrder(remainingOrder);
+                return queuedOrdersAtPrice;
+            });
 
         ordersBySide.computeIfAbsent(order.getPrice(), key -> {
             QueuedOrdersAtPrice queuedOrdersAtPrice = new QueuedOrdersAtPrice();
             queuedOrdersAtPrice.addOrder(remainingOrder);
             return queuedOrdersAtPrice;
         });
-    }
-
-    /**
-     * Match the activeOrderId with qty (volume) and price with orders at the given
-     * side.
-     *
-     * Matching is done in priority order, first come first serve. When a passive
-     * order has been filled it is removed from the order queue and when all
-     * orders has been filled the price at the the side is removed from the order book.
-     *
-     * @param ordersAtPrice BID or OFFER
-     * @param qty The amount of volume to remove from the orders
-     * @param activeOrderId The active orderId
-     * @return List of matching trades @ given price
-     */
-    private List<Trade> matchAtPrice(final Map.Entry<Long, QueuedOrdersAtPrice> ordersAtPrice,
-                                     final Long qty, final Long activeOrderId) {
-        final List<Trade> trades = new ArrayList<>();
-
-        final Long price = ordersAtPrice.getKey();
-        final List<Order> queuedOrders = ordersAtPrice.getValue().getOrders();
-
-        Long availQty = qty;
-
-        for (final Iterator<Order> it = queuedOrders.iterator(); it.hasNext();) {
-            final Order queuedOrder = it.next();
-            if (availQty > queuedOrder.getQuantity()) {
-                availQty -= queuedOrder.getQuantity();
-                trades.add(new Trade(activeOrderId, queuedOrder.getId(), price, queuedOrder.getQuantity()));
-                it.remove(); // passive order has been filled!, removed from the order queue
-            } else if (availQty < queuedOrder.getQuantity()) {
-                final long diff = queuedOrder.getQuantity() - availQty;
-                queuedOrder.setQuantity(diff);
-                trades.add(new Trade(activeOrderId, queuedOrder.getId(), price, availQty));
-                availQty = 0L;
-            } else {
-                trades.add(new Trade(activeOrderId, queuedOrder.getId(), price, queuedOrder.getQuantity()));
-                availQty = 0L;
-                it.remove();
-            }
-
-            if (availQty <= 0) {
-                break;
-            }
-        }
-
-        return trades;
     }
 
     private SortedMap<Long, QueuedOrdersAtPrice> getOrdersBySide(final Side side) {
