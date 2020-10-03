@@ -1,4 +1,4 @@
-package com.ngm.exercise.ordermatcher;
+package se.ngm.ordermatcher;
 
 import java.util.ArrayList;
 import java.util.List;

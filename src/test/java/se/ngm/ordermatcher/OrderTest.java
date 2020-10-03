@@ -1,4 +1,4 @@
-package com.ngm.exercise.ordermatcher;
+package se.ngm.ordermatcher;
 
 import org.junit.jupiter.api.Test;
 

@@ -1,4 +1,4 @@
-package com.ngm.exercise.ordermatcher;
+package se.ngm.ordermatcher;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -7,7 +7,6 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
-import static com.ngm.exercise.ordermatcher.OrderParserUtil.parseOrder;
 import static java.util.List.of;
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -33,7 +32,7 @@ public class OrderMatcherTest1 {
 
         List<String> trades = new ArrayList<>();
         for (String order : orders) {
-            List<Trade> tradeList = orderMatcher.placeOrder(parseOrder(order));
+            List<Trade> tradeList = orderMatcher.placeOrder(OrderParserUtil.parseOrder(order));
             for (Trade trade : tradeList) {
                 trades.add(trade.toString());
             }
