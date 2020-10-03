@@ -37,16 +37,6 @@ public class OrderParserUtil {
         }
     }
 
-    private static long getId(final Scanner scanner) {
-        long id = 0;
-        if (scanner.hasNext()) {
-            String dashAndId = scanner.next();
-            String idStr = dashAndId.replace("#", "");
-            id = Long.parseLong(idStr);
-        }
-        return id;
-    }
-
     private static long[] getQtyAndPrice(final Scanner scanner) {
         final long[] priceAndQty = new long[2];
         final String qtyAndPrice = scanner.next();

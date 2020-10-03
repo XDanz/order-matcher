@@ -15,7 +15,7 @@ public class OrderMatcher {
         return orderBook.getOrders(side);
     }
 
-    public static void main(final String... args) {
+    public static void main(final String[] args) {
         OrderMatcher matcher = new OrderMatcher();
         System.out.println("Order matcher. To quit hit 'Ctrl+d' or 'QUIT'");
         System.out.println();

@@ -65,7 +65,6 @@ public class OrderMatcherTest2 {
         assertThat(orders).extracting("qty", "price")
             .contains(Tuple.tuple(100L, 5L), Tuple.tuple(100L, 4L));
 
-
         List<Trade> trades = orderMatcher.placeOrder(SELL_300_at_4_ID_2);
 
         assertThat(trades).extracting("qty", "price")

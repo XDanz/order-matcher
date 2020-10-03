@@ -23,7 +23,6 @@ public class Trade {
         return qty;
     }
 
-
     public static class Builder {
         private long price;
         private long qty;
