@@ -14,7 +14,6 @@ public class OrderMatcherTest2 {
 
     private static final Order BUY_100_at_5_ID_1 = buyOrder().qty(100).price(5).build();
     private static final Order BUY_100_at_4_ID_2 = buyOrder().qty(100).price(4).build();
-    private static final Order BUY_60_at_10 = buyOrder().qty(60).price(10).build();
 
     private static final Order BUY_300_at_5_ID_3 = buyOrder().qty(300).price(5).build();
     private static final Order BUY_50_at_5_ID_3 = buyOrder().qty(50).price(5).build();
@@ -22,7 +21,6 @@ public class OrderMatcherTest2 {
 
     private static final Order SELL_100_at_5_ID_1 = sellOrder().qty(100).price(5).build();
     private static final Order SELL_100_at_4_ID_2 = sellOrder().qty(100).price(4).build();
-    private static final Order SELL_100_at_10 = sellOrder().qty(100).price(10).build();
     private static final Order SELL_300_at_4_ID_2 = sellOrder().qty(300).price(4).build();
 
     private static final Order SELL_50_at_5_ID_2 = sellOrder().qty(50).price(5).build();
@@ -32,22 +30,11 @@ public class OrderMatcherTest2 {
     private static final Order SELL_50_at_10_ID_1 = Order.sellOrder().qty(50).price(10).build();
     private static final Order SELL_100_at_10_ID_2 = Order.sellOrder().qty(100).price(10).build();
 
-
-    /**
-     * testMatch(
-     * asList("BUY 60@10 #1", "SELL 100@10 #2"),
-     * asList("TRADE 60@10 (#2/#1)"),
-     * asList("SELL 40@10 #2")
-     * );
-     */
     @Test
     void name() {
         OrderMatcher orderMatcher = new OrderMatcher();
         orderMatcher.placeOrder(BUY_100_at_5_ID_1);
     }
-
-
-
 
     @DisplayName("Match 1 queued order 3 times and check removal from order book")
     @Test
@@ -139,7 +126,7 @@ public class OrderMatcherTest2 {
 
     @DisplayName("2 queued orders match all none remaining")
     @Test
-    public void test6() {
+    public void test_match_all() {
         OrderMatcher orderMatcher = new OrderMatcher();
         orderMatcher.placeOrder(SELL_50_at_10_ID_1);
         orderMatcher.placeOrder(SELL_100_at_10_ID_2);

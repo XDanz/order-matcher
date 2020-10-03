@@ -11,7 +11,7 @@ import static com.ngm.exercise.ordermatcher.OrderParserUtil.parseOrder;
 import static java.util.List.of;
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class Order3MatcherTest {
+public class OrderMatcherTest1 {
 
     private static Stream<Arguments> provider() {
         return Stream.of(
