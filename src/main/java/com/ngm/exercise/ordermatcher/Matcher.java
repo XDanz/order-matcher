@@ -31,17 +31,27 @@ public class Matcher {
 
         for (final Iterator<Order> it = queuedOrders.iterator(); it.hasNext();) {
             final Order queuedOrder = it.next();
-            if (availQty > queuedOrder.getQuantity()) {
-                availQty -= queuedOrder.getQuantity();
-                trades.add(new Trade(activeOrderId, queuedOrder.getId(), price, queuedOrder.getQuantity()));
+            if (availQty > queuedOrder.getQty()) {
+                availQty -= queuedOrder.getQty();
+                trades.add(Trade.builder()
+                    .actOrdId(activeOrderId)
+                    .queuedOrdId(queuedOrder.getId())
+                    .price(price)
+                    .qty(queuedOrder.getQty())
+                    .build());
                 it.remove(); // passive order has been filled!, removed from the order queue
-            } else if (availQty < queuedOrder.getQuantity()) {
-                final long diff = queuedOrder.getQuantity() - availQty;
-                queuedOrder.setQuantity(diff);
-                trades.add(new Trade(activeOrderId, queuedOrder.getId(), price, availQty));
+            } else if (availQty < queuedOrder.getQty()) {
+                final long diff = queuedOrder.getQty() - availQty;
+                queuedOrder.setQty(diff);
+                trades.add(Trade.builder()
+                    .actOrdId(activeOrderId)
+                    .queuedOrdId(queuedOrder.getId())
+                    .price(price)
+                    .qty(availQty)
+                    .build());
                 availQty = 0L;
             } else {
-                trades.add(new Trade(activeOrderId, queuedOrder.getId(), price, queuedOrder.getQuantity()));
+                trades.add(new Trade(activeOrderId, queuedOrder.getId(), price, queuedOrder.getQty()));
                 availQty = 0L;
                 it.remove();
             }

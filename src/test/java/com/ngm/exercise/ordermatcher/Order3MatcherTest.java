@@ -10,9 +10,9 @@ import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-public class OrderMatcherTest {
+public class Order3MatcherTest {
 
-    public OrderMatcherTest() {
+    public Order3MatcherTest() {
     }
 
     // --- BASIC ORDER HANDLING ---
@@ -166,7 +166,7 @@ public class OrderMatcherTest {
         OrderMatcher matcher = new OrderMatcher();
         ArrayList<Trade> trades = new ArrayList<>();
         // add orders
-        inputOrders.stream().map(Order::parse).forEach(o -> trades.addAll(matcher.placeOrder(o)));
+        inputOrders.stream().map(OrderParserUtil::parseOrder).forEach(o -> trades.addAll(matcher.placeOrder(o)));
 
         // verify trades
         assertEquals(expTrades, trades.stream().map(Trade::toString).collect(Collectors.toList()));

@@ -1,64 +1,52 @@
-/*
- * Copyright (c) 2014 Cinnober Financial Technology AB, Stockholm,
- * Sweden. All rights reserved.
- * 
- * This software is the confidential and proprietary information of
- * Cinnober Financial Technology AB, Stockholm, Sweden. You shall not
- * disclose such Confidential Information and shall use it only in
- * accordance with the terms of the license agreement you entered into
- * with Cinnober.
- * 
- * Cinnober makes no representations or warranties about the suitability
- * of the software, either expressed or implied, including, but not limited
- * to, the implied warranties of merchantibility, fitness for a particular
- * purpose, or non-infringement. Cinnober shall not be liable for any
- * damages suffered by licensee as a result of using, modifying, or
- * distributing this software or its derivatives.
- */
-
 package com.ngm.exercise.ordermatcher;
 
-/**
- * A matched trade.
- */
-public class Trade {
-    private final long activeOrderId;
-    private final long passiveOrderId;
-    private final long price;
-    private final long quantity;
+import static java.util.Objects.hash;
 
-    /**
-     * Create a new trade.
-     * @param activeOrderId the active client assigned order id.
-     * @param passiveOrderId the passive client assigned order id.
-     * @param price the price.
-     * @param quantity the quantity.
-     */
-    public Trade(long activeOrderId, long passiveOrderId, long price, long quantity) {
-        this.activeOrderId = activeOrderId;
-        this.passiveOrderId = passiveOrderId;
+public class Trade {
+    private final long activeOrdId;
+    private final long queuedOrdId;
+    private final long price;
+    private final long qty;
+
+    public Trade(long activeOrdId, long queuedOrdId, long price, long qty) {
+        this.activeOrdId = activeOrdId;
+        this.queuedOrdId = queuedOrdId;
         this.price = price;
-        this.quantity = quantity;
+        this.qty = qty;
+    }
+
+    public Trade(final Builder builder) {
+        this.activeOrdId = builder.activeOrderId;
+        this.queuedOrdId = builder.queuedOrderId;
+        this.price = builder.price;
+        this.qty = builder.qty;
+    }
+
+    public static Builder builder() {
+        return new Builder();
     }
 
     /**
      * Returns the active client assigned order id.
+     *
      * @return the active client assigned order id.
      */
-    public long getActiveOrderId() {
-        return activeOrderId;
+    public long getActiveOrdId() {
+        return activeOrdId;
     }
 
     /**
      * Returns the passive client assigned order id.
+     *
      * @return the passive client assigned order id.
      */
-    public long getPassiveOrderId() {
-        return passiveOrderId;
+    public long getQueuedOrdId() {
+        return queuedOrdId;
     }
 
     /**
      * Returns the price.
+     *
      * @return the price.
      */
     public long getPrice() {
@@ -67,51 +55,63 @@ public class Trade {
 
     /**
      * Returns the quantity.
+     *
      * @return the quantity.
      */
-    public long getQuantity() {
-        return quantity;
+    public long getQty() {
+        return qty;
+    }
+
+
+    public static class Builder {
+        private long activeOrderId;
+        private long queuedOrderId;
+        private long price;
+        private long qty;
+
+        public Builder actOrdId(final long actOrdId) {
+            this.activeOrderId = actOrdId;
+            return this;
+        }
+
+        public Builder queuedOrdId(final long passOrdId) {
+            this.queuedOrderId = passOrdId;
+            return this;
+        }
+
+        public Builder price(final long price) {
+            this.price = price;
+            return this;
+        }
+
+        public Builder qty(final long qty) {
+            this.qty = qty;
+            return this;
+        }
+
+        public Trade build() {
+            return new Trade(this);
+        }
     }
 
     @Override
     public String toString() {
-        return "TRADE " + quantity + "@" + price + " (#" + activeOrderId + "/#" + passiveOrderId + ")";
+        return "TRADE " + qty + "@" + price + " (#" + activeOrdId + "/#" + queuedOrdId + ")";
+    }
+
+    @Override
+    public boolean equals(final Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        final Trade trade = (Trade) o;
+        return activeOrdId == trade.activeOrdId &&
+            queuedOrdId == trade.queuedOrdId &&
+            price == trade.price &&
+            qty == trade.qty;
     }
 
     @Override
     public int hashCode() {
-        int hash = 7;
-        hash = 47 * hash + (int) (this.activeOrderId ^ (this.activeOrderId >>> 32));
-        hash = 47 * hash + (int) (this.passiveOrderId ^ (this.passiveOrderId >>> 32));
-        hash = 47 * hash + (int) (this.price ^ (this.price >>> 32));
-        hash = 47 * hash + (int) (this.quantity ^ (this.quantity >>> 32));
-        return hash;
+        return hash(activeOrdId, queuedOrdId, price, qty);
     }
-
-    @Override
-    public boolean equals(Object obj) {
-        if (obj == null) {
-            return false;
-        }
-        if (getClass() != obj.getClass()) {
-            return false;
-        }
-        final Trade other = (Trade) obj;
-        if (this.activeOrderId != other.activeOrderId) {
-            return false;
-        }
-        if (this.passiveOrderId != other.passiveOrderId) {
-            return false;
-        }
-        if (this.price != other.price) {
-            return false;
-        }
-        if (this.quantity != other.quantity) {
-            return false;
-        }
-        return true;
-    }
-
-    
-    
 }

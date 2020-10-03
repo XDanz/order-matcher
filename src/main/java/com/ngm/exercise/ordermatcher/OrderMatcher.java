@@ -95,7 +95,7 @@ public class OrderMatcher {
                             .forEach(System.out::println);
                         break;
                     default: // order
-                        matcher.placeOrder(Order.parse(line)).stream()
+                        matcher.placeOrder(OrderParserUtil.parseOrder(line)).stream()
                             .map(Trade::toString)
                             .forEach(System.out::println);
                         break;

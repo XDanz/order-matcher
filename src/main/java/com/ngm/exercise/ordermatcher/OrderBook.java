@@ -80,7 +80,7 @@ public class OrderBook {
         // the trades that generates from the specified active order
         final List<Trade> trades = new ArrayList<>();
 
-        long currQty = order.getQuantity();
+        long currQty = order.getQty();
         final Side currSide = order.getSide();
 
         if (Side.BUY.equals(currSide)) {
@@ -138,7 +138,7 @@ public class OrderBook {
         final List<Trade> tradesAtPrice = Matcher.matchAtPrice(ordersAtPrice, currQty, order.getId());
         trades.addAll(tradesAtPrice);
         currQty -= tradesAtPrice.stream()
-            .mapToLong(Trade::getQuantity)
+            .mapToLong(Trade::getQty)
             .sum();
         return currQty;
     }
@@ -152,7 +152,10 @@ public class OrderBook {
         final Map<Long, QueuedOrdersAtPrice> ordersBySide = getOrdersBySide(order.getSide());
 
         final Order remainingOrder =
-            new Order(order.getId(), order.getSide(), order.getPrice(), qty);
+            Order.builder().id(order.getId())
+            .side(order.getSide())
+            .price(order.getPrice())
+            .qty(qty).build();
 
         ordersBySide.computeIfPresent(order.getPrice(),
             (key, queuedOrdersAtPrice) -> {

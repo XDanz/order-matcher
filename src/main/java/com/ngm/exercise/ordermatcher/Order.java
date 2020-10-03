@@ -1,117 +1,150 @@
 package com.ngm.exercise.ordermatcher;
 
-import java.util.Objects;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
 import static java.util.Objects.hash;
 
-/**
- * Limit order.
- *
- * <p>An order has a side (buy/sell), quantity and price. For example: buy 10 units @ 5 SEK each (or better price).
- */
 public class Order {
-    private static final Pattern PATTERN =
-            Pattern.compile("(?<side>([bB][uU][yY])|([sS][eE][lL][lL]))[ ]+(?<qty>[0-9]+)[ ]*@[ ]*(?<px>[0-9]+)([ ]+#(?<id>[0-9]+))?");
-    private static final String GROUP_ID = "id";
-    private static final String GROUP_SIDE = "side";
-    private static final String GROUP_QUANTITY = "qty";
-    private static final String GROUP_PRICE = "px";
-
-    private final long id;
+    private long id;
     private final Side side;
-    private final long price;
-    private long quantity;
+    private long price;
+    private long qty;
 
-    /**
-     * Create a new order.
-     * @param id the client assigned id.
-     * @param side the side (buy/sell), not null.
-     * @param price the price, must be &gt;= 0.
-     * @param quantity the quantity, must be &gt;= 0.
-     */
-    public Order(long id, Side side, long price, long quantity) {
-        this.id = id;
-        this.side = Objects.requireNonNull(side);
-        if (price < 0) {
-            throw new IllegalArgumentException("price must be >= 0");
-        }
-        this.price = price;
-        if (quantity <= 0) {
-            throw new IllegalArgumentException("quantity must be > 0");
-        }
-        this.quantity = quantity;
+    private Order(final BuyOrderBuilder builder) {
+        validate(builder);
+        set(builder);
+        this.side = builder.side;
     }
 
-    /**
-     * Returns the client assigned order id.
-     * @return the client assigned order id.
-     */
+    public Order(final Builder builder) {
+        validate(builder);
+        set(builder);
+        this.side = Require.notNull(builder.side, "side");
+    }
+
+    private void validate(final AbstractBuilder<?, ?> builder) {
+        Require.that(builder.price >= 0, "price must be >=0");
+        Require.that(builder.qty > 0, "qty must be > 0");
+    }
+
+    private Order(final SellOrderBuilder builder) {
+        validate(builder);
+        set(builder);
+        this.side = builder.side;
+    }
+
+    private void set(final AbstractBuilder<?, ?> builder) {
+        this.id = builder.id;
+        this.price = builder.price;
+        this.qty = builder.qty;
+    }
+
     public long getId() {
         return id;
     }
 
-    /**
-     * Returns the side.
-     * @return the side, not null.
-     */
     public Side getSide() {
         return side;
     }
 
-    /**
-     * Returns the price.
-     * @return the price.
-     */
     public long getPrice() {
         return price;
     }
 
-    /**
-     * Returns the quantity.
-     * @return the quantity.
-     */
-    public long getQuantity() {
-        return quantity;
+    public long getQty() {
+        return qty;
     }
 
-    /**
-     * Set the quantity.
-     * @param quantity the new quantity, must be &gt;= 0.
-     */
-    public void setQuantity(long quantity) {
-        if (quantity < 0) {
-            throw new IllegalArgumentException("quantity must be >= 0");
+    public void setQty(long qty) {
+        Require.that(qty >= 0, "quantity must be >= 0");
+        this.qty = qty;
+    }
+
+    public abstract static class AbstractBuilder<B extends AbstractBuilder<B, T>, T> {
+        protected long id;
+        protected long price;
+        protected long qty;
+
+        protected abstract B self();
+
+        public abstract T build();
+
+        public B id(final long id) {
+            this.id = id;
+            return self();
         }
-        this.quantity = quantity;
+
+        public B price(final long price) {
+            this.price = price;
+            return self();
+        }
+
+        public B qty(final long qty) {
+            this.qty = qty;
+            return self();
+        }
     }
 
-    /**
-     * Returns true if the quantity is zero.
-     * @return true if the quantity is zero, otherwise false.
-     */
-    public boolean isEmpty() {
-        return quantity == 0;
+    public static class BuyOrderBuilder extends AbstractBuilder<BuyOrderBuilder, Order> {
+        final Side side = Side.BUY;
+
+        @Override
+        protected BuyOrderBuilder self() {
+            return this;
+        }
+
+        @Override
+        public Order build() {
+            return new Order(this);
+        }
+    }
+
+    public static class SellOrderBuilder extends AbstractBuilder<SellOrderBuilder, Order> {
+        final Side side = Side.SELL;
+
+        @Override
+        protected SellOrderBuilder self() {
+            return this;
+        }
+
+        @Override
+        public Order build() {
+            return new Order(this);
+        }
+    }
+
+    public static class Builder extends AbstractBuilder<Builder, Order> {
+        private Side side;
+
+        public Builder side(final Side side) {
+            this.side = side;
+            return this;
+        }
+
+        @Override
+        protected Builder self() {
+            return this;
+        }
+
+        @Override
+        public Order build() {
+            return new Order(this);
+        }
+    }
+
+    public static SellOrderBuilder sellOrder() {
+        return new SellOrderBuilder();
+    }
+
+    public static BuyOrderBuilder buyOrder() {
+        return new BuyOrderBuilder();
+    }
+
+    public static Builder builder() {
+        return new Builder();
     }
 
     @Override
     public String toString() {
-        return side + " " + quantity + "@" + price + " #" + id;
-    }
-
-    public static Order parse(String str) {
-        final Matcher m = PATTERN.matcher(str);
-        if (!m.matches()) {
-            throw new IllegalArgumentException("Illegal order format. Expected #id buy|sell quantity@price");
-        }
-        final String idStr = m.group(GROUP_ID);
-        final long id = idStr != null ? Long.parseLong(idStr) : 0L;
-        final Side side = Side.valueOf(m.group(GROUP_SIDE).toUpperCase());
-        final long price = Long.parseLong(m.group(GROUP_PRICE));
-        final long quantity = Long.parseLong(m.group(GROUP_QUANTITY));
-
-        return new Order(id, side, price, quantity);
+        return side + " " + qty + "@" + price + " #" + id;
     }
 
     @Override
@@ -121,12 +154,12 @@ public class Order {
         final Order order = (Order) o;
         return id == order.id &&
             price == order.price &&
-            quantity == order.quantity &&
+            qty == order.qty &&
             side == order.side;
     }
 
     @Override
     public int hashCode() {
-        return hash(id, side, price, quantity);
+        return hash(id, side, price, qty);
     }
 }

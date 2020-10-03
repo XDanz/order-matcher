@@ -1,40 +1,10 @@
 package com.ngm.exercise.ordermatcher;
 
 import java.util.Scanner;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 public class OrderParserUtil {
-    private static final Pattern PATTERN =
-        Pattern.compile("(?<side>([bB][uU][yY])|([sS][eE][lL][lL]))[ ]+(?<qty>[0-9]+)[ ]*@[ ]*(?<px>[0-9]+)([ ]+#(?<id>[0-9]+))?");
-    private static final String GROUP_ID = "id";
-    private static final String GROUP_SIDE = "side";
-    private static final String GROUP_QUANTITY = "qty";
-    private static final String GROUP_PRICE = "px";
 
-    public OrderParserUtil() {
-    }
-
-    public static Order2 parseOrder(final String order) {
-        final Matcher m = PATTERN.matcher(order);
-        if (!m.matches()) {
-            throw new IllegalArgumentException("Illegal order format. Expected #id buy|sell quantity@price");
-        }
-        final String idStr = m.group(GROUP_ID);
-        final long id = idStr != null ? Long.parseLong(idStr) : 0L;
-        final Side side = Side.valueOf(m.group(GROUP_SIDE).toUpperCase());
-        final long price = Long.parseLong(m.group(GROUP_PRICE));
-        final long quantity = Long.parseLong(m.group(GROUP_QUANTITY));
-
-        if (Side.SELL.equals(side)) {
-            return Order2.sellOrder().id(id).price(price).qty(quantity).
-                build();
-        } else {
-            return Order2.buyOrder().id(id).price(price).qty(quantity).build();
-        }
-    }
-
-    public static Order2 parseOrder2(final String order) {
+    public static Order parseOrder(final String order) {
         try {
             final Scanner sc = new Scanner(order);
             sc.useDelimiter(" ");
@@ -47,9 +17,9 @@ public class OrderParserUtil {
             long id = getId(sc);
 
             if (Side.SELL.equals(sid)) {
-                return Order2.sellOrder().id(id).price(price).qty(qty).build();
+                return Order.sellOrder().id(id).price(price).qty(qty).build();
             } else {
-                return Order2.buyOrder().id(id).price(price).qty(qty).build();
+                return Order.buyOrder().id(id).price(price).qty(qty).build();
             }
         } catch (final Exception e) {
             throw new IllegalArgumentException(

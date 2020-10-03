@@ -1,162 +1,155 @@
 package com.ngm.exercise.ordermatcher;
 
 import java.util.List;
+import org.assertj.core.groups.Tuple;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
+import static com.ngm.exercise.ordermatcher.Order.buyOrder;
+import static com.ngm.exercise.ordermatcher.Order.sellOrder;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.tuple;
 
 public class OrderMatcherTest2 {
 
+    private static final Order BUY_100_at_5_ID_1 = buyOrder().qty(100).price(5).id(1).build();
+    private static final Order BUY_100_at_4_ID_2 = buyOrder().qty(100).price(4).id(2).build();
+
+    private static final Order BUY_300_at_5_ID_3 = buyOrder().qty(300).price(5).id(3).build();
+    private static final Order BUY_50_at_5_ID_3 = buyOrder().qty(50).price(5).id(3).build();
+    private static final Order BUY_150_at_10_ID_3 = buyOrder().qty(150).price(10).id(2).build();
+
+    private static final Order SELL_100_at_5_ID_1 = sellOrder().qty(100).price(5).id(1).build();
+    private static final Order SELL_100_at_4_ID_2 = sellOrder().qty(100).price(4).id(2).build();
+    private static final Order SELL_300_at_4_ID_2 = sellOrder().qty(300).price(4).id(2).build();
+
+    private static final Order SELL_50_at_5_ID_2 = sellOrder().qty(50).price(5).id(2).build();
+    private static final Order SELL_20_at_5_ID_3 = sellOrder().qty(20).price(5).id(3).build();
+    private static final Order SELL_30_at_5_ID_4 = sellOrder().qty(30).price(5).id(4).build();
+
+    private static final Order SELL_50_at_10_ID_1 = Order.sellOrder().id(1).qty(50).price(10).build();
+    private static final Order SELL_100_at_10_ID_2 = Order.sellOrder().id(2).qty(100).price(10).build();
+
+
     /**
-     *     testMatch(
-     *             asList("BUY 60@10 #1", "SELL 100@10 #2"),
-     *             asList("TRADE 60@10 (#2/#1)"),
-     *             asList("SELL 40@10 #2")
-     *         );
+     * testMatch(
+     * asList("BUY 60@10 #1", "SELL 100@10 #2"),
+     * asList("TRADE 60@10 (#2/#1)"),
+     * asList("SELL 40@10 #2")
+     * );
      */
     @Test
     void name() {
         OrderMatcher orderMatcher = new OrderMatcher();
-        orderMatcher.placeOrder(new Order(1, Side.BUY, 5, 100));
+        orderMatcher.placeOrder(BUY_100_at_5_ID_1);
     }
 
+    @DisplayName("Match 1 queued order 3 times and check removal from order book")
     @Test
-    public void testMatch1() {
-        OrderMatcher orderMatcher = new OrderMatcher();
-        orderMatcher.placeOrder(new Order(1, Side.BUY, 5, 100));
+    public void test_match_all_qty() {
+        final OrderMatcher orderMatcher = new OrderMatcher();
+        orderMatcher.placeOrder(BUY_100_at_5_ID_1);
 
-        List<Trade> trades = orderMatcher.placeOrder(new Order(2, Side.SELL, 5, 50));
-        System.out.println(trades.size() + " trades = " + trades);
-        assertThat(trades.size()).isEqualTo(1);
-        assertTrade(5, 50, trades.get(0));
-
+        List<Trade> trades = orderMatcher.placeOrder(SELL_50_at_5_ID_2);
+        assertThat(trades).extracting("qty", "price")
+            .contains(Tuple.tuple(50L, 5L));
         List<Order> orders = orderMatcher.getOrders(Side.BUY);
-        System.out.println("1 orders = " + orders);
+        assertThat(orders).extracting("qty", "price")
+            .contains(Tuple.tuple(50L, 5L));
 
-        trades = orderMatcher.placeOrder(new Order(3, Side.SELL, 5, 20));
-        System.out.println("2 trades = " + trades);
-
+        trades = orderMatcher.placeOrder(SELL_20_at_5_ID_3);
+        assertThat(trades).extracting("qty", "price")
+            .contains(Tuple.tuple(20L, 5L));
         orders = orderMatcher.getOrders(Side.BUY);
-        System.out.println("2 orders = " + orders);
+        assertThat(orders).extracting("qty", "price")
+            .contains(Tuple.tuple(30L, 5L));
 
-        trades = orderMatcher.placeOrder(new Order(4, Side.SELL, 5, 30));
-        System.out.println("3 trades = " + trades);
-
+        trades = orderMatcher.placeOrder(SELL_30_at_5_ID_4);
+        assertThat(trades).extracting("qty", "price")
+            .contains(Tuple.tuple(30L, 5L));
         orders = orderMatcher.getOrders(Side.BUY);
-        System.out.println("3 orders = " + orders);
+        assertThat(orders).hasSize(0);
     }
 
+    @DisplayName("Match 2 orders with different price and has remaining qty (placed in order book)")
     @Test
-    public void testMatch12() {
+    public void test_match_2_orders() {
         OrderMatcher orderMatcher = new OrderMatcher();
-        orderMatcher.placeOrder(new Order(1, Side.BUY, 5, 100));
-        orderMatcher.placeOrder(new Order(2, Side.BUY, 4, 100));
+        orderMatcher.placeOrder(BUY_100_at_5_ID_1);
+        orderMatcher.placeOrder(BUY_100_at_4_ID_2);
+        List<Order> orders = orderMatcher.getOrders(Side.BUY);
+        assertThat(orders).extracting("qty", "price")
+            .contains(Tuple.tuple(100L, 5L), Tuple.tuple(100L, 4L));
 
-        List<Trade> trades = orderMatcher.placeOrder(new Order(3, Side.SELL, 4, 300));
-        System.out.println(trades.size() + " trades = " + trades);
-        assertThat(trades).hasSize(2);
-        assertTrade(5, 100, trades.get(0));
-        assertTrade(4, 100, trades.get(1));
 
-        List<Order> orders = orderMatcher.getOrders(Side.SELL);
-        System.out.println(orders.size() + " orders = " + orders);
-        assertThat(orders).hasSize(1);
-        assertOrder(4, 100, orders.get(0));
-    }
+        List<Trade> trades = orderMatcher.placeOrder(SELL_300_at_4_ID_2);
 
-    @Test
-    public void testMatch2() {
-        OrderMatcher orderMatcher = new OrderMatcher();
+        assertThat(trades).extracting("qty", "price")
+            .containsExactly(Tuple.tuple(100L, 5L), Tuple.tuple(100L, 4L));
 
-        orderMatcher.placeOrder(new Order(1, Side.SELL, 5, 100));
-        orderMatcher.placeOrder(new Order(2, Side.SELL, 4, 100));
-        List<Order> orders = orderMatcher.getOrders(Side.SELL);
-        System.out.println("orders = " + orders);
-
-        assertThat(orders).extracting("price","quantity")
-            .contains(tuple(4L,100L),tuple(5L,100L));
-        assertOrder(4, 100, orders.get(0));
-        assertOrder(5, 100, orders.get(1));
-
-        List<Trade> trades = orderMatcher.placeOrder(new Order(3, Side.BUY, 5, 50));
-        assertThat(trades).hasSize(1);
-        assertTrade(4, 50, trades.get(0));
-        System.out.println(trades.size() + " trades = " + trades);
         orders = orderMatcher.getOrders(Side.SELL);
-        System.out.println("orders = " + orders);
+
+        assertThat(orders).extracting("qty", "price")
+            .containsExactly(Tuple.tuple(100L, 4L));
     }
 
+    @DisplayName("2 queued orders match partial with better price")
     @Test
-    public void testMatch3() {
+    public void test_match_partial() {
         OrderMatcher orderMatcher = new OrderMatcher();
 
-        orderMatcher.placeOrder(new Order(1, Side.SELL, 5, 100));
-        orderMatcher.placeOrder(new Order(2, Side.SELL, 4, 100));
+        orderMatcher.placeOrder(SELL_100_at_5_ID_1);
+        orderMatcher.placeOrder(SELL_100_at_4_ID_2);
         List<Order> orders = orderMatcher.getOrders(Side.SELL);
-        assertThat(orders).hasSize(2);
-    ///assertEquals(2, orders.size());
-        System.out.println("orders = " + orders);
+        assertThat(orders).extracting("price", "qty")
+            .contains(tuple(4L, 100L), tuple(5L, 100L));
 
-        assertOrder(4, 100, orders.get(0));
-        assertOrder(5, 100, orders.get(1));
+        List<Trade> trades = orderMatcher.placeOrder(BUY_50_at_5_ID_3);
+        assertThat(trades).extracting("qty", "price")
+            .containsExactly(Tuple.tuple(50L, 4L));
 
-        List<Trade> trades = orderMatcher.placeOrder(new Order(3, Side.BUY, 5, 300));
-        assertThat(trades).hasSize(2);
-        assertTrade(4, 100, trades.get(0));
-        assertTrade(5, 100, trades.get(1));
-        System.out.println(trades.size() + " trades = " + trades);
-        orders = orderMatcher.getOrders(Side.BUY);
-        System.out.println("orders = " + orders);
-        assertThat(orders).hasSize(1);
-        assertOrder(5, 100, orders.get(0));
+        orders = orderMatcher.getOrders(Side.SELL);
+        assertThat(orders).extracting("price", "qty")
+            .contains(tuple(4L, 50L), tuple(5L, 100L));
     }
 
+    @DisplayName("2 queued orders match all with remaining (placed in order book)")
+    @Test
+    public void test_match_orders_with_remaining() {
+        OrderMatcher orderMatcher = new OrderMatcher();
+        orderMatcher.placeOrder(SELL_100_at_5_ID_1);
+        orderMatcher.placeOrder(SELL_100_at_4_ID_2);
+        List<Order> orders = orderMatcher.getOrders(Side.SELL);
+        assertThat(orders).extracting("price", "qty")
+            .contains(tuple(4L, 100L), tuple(5L, 100L));
+
+        List<Trade> trades = orderMatcher.placeOrder(BUY_300_at_5_ID_3);
+        assertThat(trades).extracting("qty", "price")
+            .containsExactly(Tuple.tuple(100L, 4L), Tuple.tuple(100L, 5L));
+
+        orders = orderMatcher.getOrders(Side.BUY);
+        assertThat(orders).extracting("price", "qty")
+            .contains(tuple(5L, 100L));
+    }
+
+    @DisplayName("2 queued orders match all none remaining")
     @Test
     public void test6() throws Exception {
         OrderMatcher orderMatcher = new OrderMatcher();
-        orderMatcher.placeOrder(new Order(1, Side.SELL, 10, 50));
-        orderMatcher.placeOrder(new Order(2, Side.SELL, 10, 100));
+        orderMatcher.placeOrder(SELL_50_at_10_ID_1);
+        orderMatcher.placeOrder(SELL_100_at_10_ID_2);
 
         List<Order> orders = orderMatcher.getOrders(Side.SELL);
         assertThat(orders).hasSize(2);
 
-        List<Trade> trades = orderMatcher.placeOrder(new Order(2, Side.BUY, 10, 150));
-        System.out.println(trades.size() + " trades = " + trades);
-        assertThat(trades).hasSize(2);
+        List<Trade> trades = orderMatcher.placeOrder(BUY_150_at_10_ID_3);
+        assertThat(trades).extracting("qty", "price")
+            .containsExactly(Tuple.tuple(50L, 10L), Tuple.tuple(100L, 10L));
 
+        orders = orderMatcher.getOrders(Side.SELL);
+        assertThat(orders).isEmpty();
+        orders = orderMatcher.getOrders(Side.BUY);
+        assertThat(orders).isEmpty();
     }
-
-    private void assertOrder(long price, long qty, Order order) {
-        assertThat(order.getPrice()).isEqualTo(price);
-        assertThat(order.getQuantity()).isEqualTo(qty);
-    }
-
-    private void assertTrade(long price, long qty, Trade trade) {
-        assertThat(trade.getPrice()).isEqualTo(price);
-        assertThat(trade.getQuantity()).isEqualTo(qty);
-    }
-
-    @Test
-    public void addOrderOnSamePrice() throws Exception {
-        OrderMatcher orderMatcher = new OrderMatcher();
-        orderMatcher.placeOrder(new Order(1, Side.SELL, 5, 50));
-        orderMatcher.placeOrder(new Order(2, Side.SELL, 5, 30));
-        orderMatcher.placeOrder(new Order(3, Side.SELL, 5, 20));
-
-        orderMatcher.placeOrder(new Order(1, Side.SELL, 4, 40));
-
-
-        List<Order> orders = orderMatcher.getOrders(Side.SELL);
-        System.out.println("orders = " + orders);
-
-    }
-
-//    @Test
-//    public void testToString() {
-//        assertEquals("BUY 100@5 #1", new Order(1, Side.BUY, 5, 100).toString());
-//        assertEquals("BUY 100@5 #0", new Order(0, Side.BUY, 5, 100).toString());
-//        assertEquals("SELL 100@5 #1", new Order(1, Side.SELL, 5, 100).toString());
-//    }
 
 }

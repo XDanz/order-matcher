@@ -8,7 +8,7 @@ public class QueuedOrdersAtPrice {
 
     long getTotalQuantity() {
         return orders.stream()
-            .mapToLong(Order::getQuantity)
+            .mapToLong(Order::getQty)
             .sum();
     }
 
