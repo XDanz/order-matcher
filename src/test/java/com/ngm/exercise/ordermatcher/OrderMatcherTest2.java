@@ -8,6 +8,19 @@ import static org.assertj.core.api.Assertions.tuple;
 
 public class OrderMatcherTest2 {
 
+    /**
+     *     testMatch(
+     *             asList("BUY 60@10 #1", "SELL 100@10 #2"),
+     *             asList("TRADE 60@10 (#2/#1)"),
+     *             asList("SELL 40@10 #2")
+     *         );
+     */
+    @Test
+    void name() {
+        OrderMatcher orderMatcher = new OrderMatcher();
+        orderMatcher.placeOrder(new Order(1, Side.BUY, 5, 100));
+    }
+
     @Test
     public void testMatch1() {
         OrderMatcher orderMatcher = new OrderMatcher();

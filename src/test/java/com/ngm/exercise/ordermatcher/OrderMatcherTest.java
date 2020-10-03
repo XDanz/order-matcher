@@ -19,11 +19,7 @@ public class OrderMatcherTest {
 
     @Test
     public void testEmpty() {
-        testMatch(
-                emptyList(),
-                emptyList(),
-                emptyList()
-        );
+        testMatch(emptyList(),emptyList(),emptyList());
     }
 
     @Test

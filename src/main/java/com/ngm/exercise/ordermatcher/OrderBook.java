@@ -15,8 +15,8 @@ import static java.util.Comparator.reverseOrder;
  *
  * @author Daniel Terranova
  *
- * An order book contains two sides a sell and a buy side. The bid/sell side is represented as a
- * SortedMap where the key is the price and value contains orders at the given price in queue order.
+ * An order book contains two sides a sell and a buy side. The buy/sell side is represented as a
+ * SortedMap where the key is the price (Long) and value contains orders at the given price in queue order.
  *
  * The bid (buy) side is sorted (key i.e price) in reverse natural order.
  * for example:
@@ -55,13 +55,13 @@ public class OrderBook {
     private final SortedMap<Long, QueuedOrdersAtPrice> sellOrdersAtPrice = new TreeMap<>(naturalOrder());
 
     /**
-     * Returns all remaining orders in this order book, in priority order for a given Side.
+     * Returns all current orders in this order book, in priority order for a given Side.
      *
-     * <p>Priority for buy orders is defined as highest price, followed by time priority (first come, first served).
+     * <p>Priority for buy orders is defined as highest price, followed by time priority.
      * For sell orders lowest price comes first, followed by time priority (same as for buy orders).
      *
      * @param side the side BUY/SELL
-     * @return all remaining orders in the order book, in priority order, for the specified side, not null.
+     * @return all current orders in the order book, in priority order, for the specified side.
      */
     public List<Order> getOrders(final Side side) {
         final List<Order> bidOrders = new ArrayList<>();
