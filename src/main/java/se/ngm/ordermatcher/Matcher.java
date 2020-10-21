@@ -8,13 +8,11 @@ import java.util.Map;
 public class Matcher {
 
     public static List<Trade> matchAtPrice(final Map.Entry<Long, QueuedOrdersAtPrice> ordersAtPrice,
-                                           final Long qty) {
+                                           long availQty) {
         final List<Trade> trades = new ArrayList<>();
 
         final Long price = ordersAtPrice.getKey();
         final List<Order> queuedOrders = ordersAtPrice.getValue().getOrders();
-
-        Long availQty = qty;
 
         for (final Iterator<Order> it = queuedOrders.iterator(); it.hasNext(); ) {
             final Order queuedOrder = it.next();

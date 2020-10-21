@@ -20,7 +20,7 @@ public class Order {
     }
 
     private void validate(final AbstractBuilder<?, ?> builder) {
-        Require.that(builder.price >= 0, "price must be >=0");
+        Require.that(builder.price > 0, "price must be >0");
         Require.that(builder.qty > 0, "qty must be > 0");
     }
 

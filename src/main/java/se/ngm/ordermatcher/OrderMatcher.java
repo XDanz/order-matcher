@@ -3,6 +3,8 @@ package se.ngm.ordermatcher;
 import java.util.List;
 import java.util.Scanner;
 
+import static se.ngm.ordermatcher.OrderParserUtil.parseOrder;
+
 public class OrderMatcher {
 
     private final OrderBook orderBook = new OrderBook();
@@ -16,10 +18,10 @@ public class OrderMatcher {
     }
 
     public static void main(final String[] args) {
-        OrderMatcher matcher = new OrderMatcher();
+        final OrderMatcher matcher = new OrderMatcher();
         System.out.println("Order matcher. To quit hit 'Ctrl+d' or 'QUIT'");
         System.out.println();
-        Scanner scanner = new Scanner(System.in);
+        final Scanner scanner = new Scanner(System.in);
         String line;
         while (scanner.hasNext()) {
             line = scanner.nextLine();
@@ -37,8 +39,8 @@ public class OrderMatcher {
                         print(matcher.getOrders(Side.SELL));
                         break;
                     default:
-                        Order order = OrderParserUtil.parseOrder(line);
-                        List<Trade> trades = matcher.placeOrder(order);
+                        final Order order = parseOrder(line);
+                        final List<Trade> trades = matcher.placeOrder(order);
                         print(trades);
                         break;
                 }
